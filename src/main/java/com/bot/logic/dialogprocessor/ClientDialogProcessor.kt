@@ -2,6 +2,7 @@ package com.bot.logic.dialogprocessor
 
 import com.bot.entity.Response
 import com.bot.entity.User
+import com.bot.logic.TextResolver
 
 class ClientDialogProcessor(val user: User) : DialogProcessor {
 	
@@ -17,7 +18,7 @@ class ClientDialogProcessor(val user: User) : DialogProcessor {
 					else       -> response.andText(state.value)
 				}
 			
-			else                                                            -> response.andText("elsebranch")
+			else        -> response.andText("elsebranch")
 		}
 	}
 	
@@ -28,7 +29,7 @@ class ClientDialogProcessor(val user: User) : DialogProcessor {
 	
 	fun result(newState: State, text: String): Response {
 		this.state = newState
-		return Response(user, text)
+		return Response(user, TextResolver.getText(text))
 	}
 	
 	override fun getResponse(): Response {

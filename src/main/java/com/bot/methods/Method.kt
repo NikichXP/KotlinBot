@@ -51,8 +51,7 @@ object Method {
 		headers.contentType = MediaType.APPLICATION_JSON
 		
 		val entity = HttpEntity<String>(gson.toJson(params), headers)
-		val response = restTemplate.postForObject(baseURL + name, entity, String::class.java)
-		println(response)
+		restTemplate.postForObject(baseURL + name, entity, String::class.java)
 	}
 	
 	
