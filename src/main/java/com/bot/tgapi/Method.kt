@@ -15,7 +15,7 @@ import org.springframework.http.MediaType
 object Method {
 	
 	val botToken = "459040479:AAEy_zLBpoDBh0B3EccUy00kHjzSGQRr99M"
-	val hostName = "https://b79ebba9.ngrok.io/"
+	val hostName = "https://89b706a6.ngrok.io/"
 	val baseURL = "https://api.telegram.org/bot$botToken/"
 	
 	val restTemplate = RestTemplate()

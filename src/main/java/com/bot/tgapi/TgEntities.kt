@@ -15,6 +15,17 @@ class ReplyKeyboardMarkup {
 	var keyboard = ArrayList<ArrayList<KeyboardButton>>()
 	var resize_keyboard = true
 	var one_time_keyboard = false
+	
+	constructor(buttons: Array<Array<String>>) {
+		this.keyboard = ArrayList()
+		buttons.forEach {
+			val add = ArrayList<KeyboardButton>()
+			it.forEach {
+				add.add(KeyboardButton(it))
+			}
+			this.keyboard.add(add)
+		}
+	}
 }
 
 class KeyboardButton(var text: String = "") {

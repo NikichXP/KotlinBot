@@ -16,17 +16,17 @@ data class Response(var chat_id: String, var text: String) {
 		return this
 	}
 	
+	fun withMaxtrixKeyboard(buttons: Array<Array<String>>): Response {
+		this.reply_markup = ReplyKeyboardMarkup(buttons)
+		return this
+	}
+	
 	fun andText(text: String): Response {
 		this.text = text
 		return this
 	}
 	
-	fun toJson(): String {
-//		if (reply_markup != null) {
-			return gson.toJson(this)
-//		}
-//		return gson.toJsonTree(this).asJsonObject.remove("reply_markup").asJsonObject.toString()
-	}
+	fun toJson() = gson.toJson(this)
 	
 	companion object {
 		val gson = Gson()

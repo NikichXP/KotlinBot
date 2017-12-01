@@ -1,0 +1,11 @@
+{
+  "state.hello": "Hello! Use /help or /home wherever you are to see main menu.",
+  "menu_components": "$create_customer,$create_request,$my_requests#$pending_requests#$manage_brokers,$manage_users,$manage_specialists",
+  "$create_customer": "Create customer",
+  "$create_request": "Create request",
+  "$my_requests": "My requests",
+  "$pending_requests": "Pending requests",
+  "$manage_brokers": "Manage brokers",
+  "$manage_users": "Manage users",
+  "$manage_specialists": "Manage specialists"
+}
