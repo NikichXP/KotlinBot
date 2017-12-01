@@ -1,6 +1,6 @@
 package com.bot
 
-import com.bot.methods.Method
+import com.bot.tgapi.Method
 import com.google.gson.Gson
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication

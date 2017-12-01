@@ -6,7 +6,7 @@ import com.bot.logic.dialogprocessor.AdminDialogProcessor
 import com.bot.logic.dialogprocessor.BrokerDialogProcessor
 import com.bot.logic.dialogprocessor.ClientDialogProcessor
 import com.bot.logic.dialogprocessor.DialogProcessor
-import com.bot.methods.Method
+import com.bot.tgapi.Method
 import com.bot.repo.UserRepo
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service

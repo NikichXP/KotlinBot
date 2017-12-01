@@ -1,7 +1,9 @@
-package com.bot.methods
+package com.bot.tgapi
 
+import com.bot.entity.Message
 import com.bot.entity.Response
 import com.google.gson.Gson
+import com.nikichxp.util.Json
 import org.springframework.http.client.ClientHttpResponse
 import org.springframework.web.client.ResponseErrorHandler
 import org.springframework.web.client.RestTemplate
@@ -34,7 +36,16 @@ object Method {
 		method("sendMessage", "chat_id", chatId, "text", text)
 	}
 	
-	fun sendMessage(response: Response) = sendMessage(response.destination, response.text)
+	
+	fun sendMessageWithKeyboard(message: Message) {
+		method("sendMessage", gson.toJson(message))
+	}
+	
+	fun sendMessage(response: Response) {
+		println(response.toJson())
+		method("sendMessage", response.toJson())
+	}
+//	} sendMessage(response.chat_id, response.text)
 	
 	fun setupWebhook() {
 		method("setWebhook", "url", hostName)
@@ -47,12 +58,19 @@ object Method {
 				paramsArr[it * 2 + 1])
 		}
 		
+		method(name, gson.toJson(params))
+	}
+	
+	fun method(name: String, request: Json) {
+		method(name, request.json())
+	}
+	
+	fun method(name: String, requestBody: String) {
 		val headers = HttpHeaders()
 		headers.contentType = MediaType.APPLICATION_JSON
 		
-		val entity = HttpEntity<String>(gson.toJson(params), headers)
+		val entity = HttpEntity(requestBody, headers)
 		restTemplate.postForObject(baseURL + name, entity, String::class.java)
 	}
-	
 	
 }
