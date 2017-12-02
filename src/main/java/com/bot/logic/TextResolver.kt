@@ -1,5 +1,6 @@
 package com.bot.logic
 
+import com.bot.entity.State
 import com.google.gson.Gson
 import java.io.BufferedReader
 import java.io.FileInputStream
@@ -20,7 +21,7 @@ object TextResolver {
 	/**
 	 * States we have. Better to be in another class. Every value is stored with $ and without it.
 	 */
-	val statesStrings: ConcurrentHashMap<String, DialogProcessor.State>
+	val statesStrings: ConcurrentHashMap<String, State>
 	
 	init {
 		storedData = Gson().fromJson<ConcurrentHashMap<String, String>>(BufferedReader(
@@ -47,7 +48,7 @@ object TextResolver {
 		}
 		
 		statesStrings = ConcurrentHashMap()
-		DialogProcessor.State.values().forEach {
+		State.values().forEach {
 			statesStrings.put("$" + it.value, it)
 			statesStrings.put(it.value, it)
 		}
@@ -59,14 +60,15 @@ object TextResolver {
 	
 	fun foo() = "bar"
 	
+	fun getStateText(state: State) = storedData["state.${state.value.toLowerCase()}"] ?: "[[Add merge text: 'state.${state.value.toLowerCase()}']]"
 	fun getText(text: String) = storedData[text.toLowerCase()] ?: storedData["$" + text.toLowerCase()] ?: "[[Add text here: $text]]"
 	
 	fun getCausedVar(text: String) =
 		storedData.filterKeys { storedData[it] == text }.keys.stream().findAny().orElse(null)
 	
-	fun getResultStateByText(text: String): DialogProcessor.State {
-		val stateName = getCausedVar(text) ?: return DialogProcessor.State.HELLO
-		return statesStrings[stateName.toUpperCase()] ?: DialogProcessor.State.HELLO
+	fun getResultStateByText(text: String): State {
+		val stateName = getCausedVar(text) ?: return State.HELLO
+		return statesStrings[stateName.toUpperCase()] ?: State.HELLO
 	}
 	
 }

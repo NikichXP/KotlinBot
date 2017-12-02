@@ -1,30 +1,35 @@
 package com.bot.logic
 
-import com.bot.entity.Response
-import com.bot.entity.User
+import com.bot.entity.*
 
 open class DialogProcessor(val user: User) {
 	
 	var state = State.HELLO
-	var microState = 0
+	var stateProcessor = StateProcessorFactory.getByState(State.HELLO, user)
 	
 	fun input(text: String): Response {
-		
-		println(TextResolver.getResultStateByText(text))
 		
 		when (text) {
 			"/home", "/help" -> return withResult(State.HELLO, Response(user, "Look at keyboard").withMaxtrixKeyboard(TextResolver.mainMenu))
 			"/test"          -> return Response(user, "TEST123").withCustomKeyboard(arrayOf("text1", "2", "three"))
-		
-		// more options here
 		}
 		
-		val response = Response(user)
-		return when (state) {
-			State.HELLO -> route(State.HELLO, text)
-			
-			else        -> response.andText("elsebranch")
+		println(state)
+		
+		if (state != stateProcessor.state) {
+			stateProcessor = StateProcessorFactory.getByState(state, user)
 		}
+		
+		val responseBlock = stateProcessor.input(text)
+		this.state = responseBlock.state
+		return responseBlock.response
+		
+		//		val response = Response(user)
+		//		return when (state) {
+		//			State.HELLO -> route(State.HELLO, text)
+		////			State.CREATE_CUSTOMER -> DialogStateProcessor.createCustomer(text, state, microState, user)
+		//			else        -> response.andText("elsebranch")
+		//		}
 	}
 	
 	private fun route(state: State, text: String): Response =
@@ -54,11 +59,5 @@ open class DialogProcessor(val user: User) {
 		return Response(user, text)
 	}
 	
-	enum class State(val value: String) {
-		HELLO("HELLO"),
-		CUSTOMERS("CUSTOMERS"),
-		CREATE_CUSTOMER("CREATE_CUSTOMER"), CREATE_REQUEST("CREATE_REQUEST"), MY_REQUESTS("MY_REQUESTS")
-		
-	}
 	
 }
