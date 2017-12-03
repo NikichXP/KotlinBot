@@ -1,7 +1,9 @@
 {
   "state.hello": "Hello! Use /help or /home wherever you are to see main menu.",
   "state.create_customer": "Enter client name",
+  "state.create_request": "#keyboard:Choice the request type:#1. Increase limit#2. Obtain credit release#3. Cancel",
 
+  "requestCreate.enterCustomerName":"Enter customer name",
   "customerCreate.address": "Enter address",
   "customerCreate.info": "Enter info",
   "customerCreate.complete": "Customer saved",
@@ -12,5 +14,7 @@
   "$pending_requests": "Pending requests",
   "$manage_brokers": "Manage brokers",
   "$manage_users": "Manage users",
-  "$manage_specialists": "Manage specialists"
+  "$manage_specialists": "Manage specialists",
+  "cancelled":"Cancelled",
+  "notFound":"Not found"
 }

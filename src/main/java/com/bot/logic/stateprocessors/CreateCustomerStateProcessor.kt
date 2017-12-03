@@ -2,7 +2,6 @@ package com.bot.logic.stateprocessors
 
 import com.bot.Ctx
 import com.bot.entity.*
-import com.bot.logic.StateProcessor
 import com.bot.logic.TextResolver
 import com.bot.repo.CustomerRepo
 import com.nikichxp.util.Async.async

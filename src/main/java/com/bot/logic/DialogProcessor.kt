@@ -23,13 +23,6 @@ open class DialogProcessor(val user: User) {
 		val responseBlock = stateProcessor.input(text)
 		this.state = responseBlock.state
 		return responseBlock.response
-		
-		//		val response = Response(user)
-		//		return when (state) {
-		//			State.HELLO -> route(State.HELLO, text)
-		////			State.CREATE_CUSTOMER -> DialogStateProcessor.createCustomer(text, state, microState, user)
-		//			else        -> response.andText("elsebranch")
-		//		}
 	}
 	
 	private fun route(state: State, text: String): Response =

@@ -1,4 +1,4 @@
-package com.bot.logic
+package com.bot.logic.stateprocessors
 
 import com.bot.entity.Response
 import com.bot.entity.ResponseBlock

@@ -2,6 +2,7 @@ package com.bot.entity
 
 import com.bot.tgapi.ReplyKeyboardMarkup
 import com.google.gson.Gson
+import java.util.*
 
 
 data class Response(var chat_id: String, var text: String) {
@@ -23,6 +24,17 @@ data class Response(var chat_id: String, var text: String) {
 	
 	fun andText(text: String): Response {
 		this.text = text
+		return this
+	}
+	
+	fun withViewData(text: String): Response {
+		if (text.startsWith("#keyboard")) {
+			val keys = LinkedList(text.substring("#keyboard:".length).split("#").toList())
+			this.text = keys.poll()
+			this.reply_markup = ReplyKeyboardMarkup(keys.toTypedArray())
+		} else {
+			this.text = text
+		}
 		return this
 	}
 	
