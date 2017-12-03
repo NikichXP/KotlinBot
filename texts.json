@@ -1,6 +1,10 @@
 {
   "state.hello": "Hello! Use /help or /home wherever you are to see main menu.",
   "state.create_customer": "Enter client name",
+
+  "customerCreate.address": "Enter address",
+  "customerCreate.info": "Enter info",
+  "customerCreate.complete": "Customer saved",
   "menu_components": "$create_customer,$create_request,$my_requests#$pending_requests#$manage_brokers,$manage_users,$manage_specialists",
   "$create_customer": "Create customer",
   "$create_request": "Create request",
