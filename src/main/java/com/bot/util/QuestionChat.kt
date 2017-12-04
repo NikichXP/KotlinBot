@@ -1,14 +1,15 @@
 package com.bot.util
 
-import java.util.*
+import java.util.LinkedList
+import com.bot.entity.State
 
 class QuestionChat() {
 	
 	val actions = LinkedList<Pair<String, (String) -> Unit>>()
 	lateinit var afterAll: () -> Unit
-	var currentState = 0
 	var isCompleted = false
 		get() = actions.peek() == null
+	var endState: State = State.HELLO
 	
 	constructor(text: String, action: (String) -> Unit) : this() {
 		then(text, action)
@@ -25,5 +26,9 @@ class QuestionChat() {
 	}
 	
 	fun next() = actions.poll()
+	fun endState(endState: State): QuestionChat {
+		this.endState = endState
+		return this
+	}
 	
 }

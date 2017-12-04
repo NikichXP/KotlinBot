@@ -9,7 +9,7 @@ import com.bot.repo.CustomerRepo
 import com.bot.util.QuestionChat
 import java.time.LocalDateTime
 
-class CreateRequestStateProcessor(override val user: User, dialogProcessor: DialogProcessor) : StateProcessor {
+class CreateRequestStateProcessor(override val user: User, val dialogProcessor: DialogProcessor) : StateProcessor {
 	
 	private val customerRepo = Ctx.get(CustomerRepo::class.java)
 	private val creditObtainsRepo = Ctx.get(CreditObtainsRepo::class.java)
@@ -20,8 +20,8 @@ class CreateRequestStateProcessor(override val user: User, dialogProcessor: Dial
 		when (text[0]) {
 			'1'  -> {
 				val questions = QuestionChat().then(TextResolver.getText("requestCreate.enterCustomerName"), {
-					context["customer"] = customerRepo.findByFullNameLike(text).orElseGet {
-						customerRepo.findById(text).orElseGet(null)
+					context["customer"] = customerRepo.findByFullNameLike(it).orElseGet {
+						customerRepo.findById(it).orElseGet { null }
 					}
 				}).then("Enter load amount", {
 					context["amount"] = it.toDouble()
@@ -31,11 +31,10 @@ class CreateRequestStateProcessor(override val user: User, dialogProcessor: Dial
 					context["bso"] = it.contains("bso", true)
 				}).afterAll {
 					creditObtainsRepo.save(CreditObtains(context))
-				}
+				}.endState(State.HELLO)
 				
-				QuestionableStateProcessor(user = user, parentStateProcessor = this, questions = questions)
-				
-				//				ResponseBlock(Response(user, TextResolver.getText("requestCreate.enterCustomerName")), this.state)
+				dialogProcessor.interceptHandle(QuestionableStateProcessor(user = user, parentStateProcessor = this, questions = questions))
+				return ResponseBlock(Response(user, ""), this.state)
 			}
 			'2'  -> {
 				//					phase = "credit release"
@@ -47,4 +46,16 @@ class CreateRequestStateProcessor(override val user: User, dialogProcessor: Dial
 		TODO("not implemented")
 	}
 }
-	
+
+/*
+
+TODO Что делать дальше:
+1. Решить как делать перехват сообщений с этого чатпроцессора на следующий.
+2. Сделать этот переход. Здесь не слать ничего (или ""), изменить статус на иной.
+3. Сделать в Questionable-СП возможность вернуться на предыдуший СП ИЛИ ЖЕ ЕЩЁ ЛУЧШЕ - перейти в любой из стейтов новых.
+4. Может апнуть этот СП для Questionable?)
+4.1. Может добавить в те чатики немного вариативности, ветвления а-ля JSON, подветки и так далее. Но это же долго....
+5. Делать другие задачи.
+
+
+ */

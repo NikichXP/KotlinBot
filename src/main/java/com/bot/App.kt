@@ -40,6 +40,11 @@ fun main(args: Array<String>) {
 	Logger.getGlobal().log(Level.INFO, "Loading complete")
 	Method.setupWebhook()
 	
+	do {
+		println("X")
+		continue
+	} while (false)
+	
 //	val map = Gson().fromJson<ConcurrentHashMap<String, String>>("""{"key1":"value1","key2":"value2"}""", ConcurrentHashMap::class.java)
 //	map.put("key1", "value1")
 //	map.put("key2", "value2")

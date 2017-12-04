@@ -26,6 +26,7 @@ class TelegramInputParser {
 			})
 			Method.sendMessage(chatProcessor.input(message.text))
 		} catch (e: NullPointerException) {
+			e.printStackTrace()
 			Method.sendMessage("34080460", "error on parse: $inputJson")
 		}
 		

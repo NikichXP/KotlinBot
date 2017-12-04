@@ -1,11 +1,14 @@
 package com.bot.logic
 
 import com.bot.entity.*
+import com.bot.logic.stateprocessors.QuestionableStateProcessor
+import com.bot.logic.stateprocessors.StateProcessor
 
 open class DialogProcessor(val user: User) {
 	
 	var state = State.HELLO
 	var stateProcessor = StateProcessorFactory.getByState(State.HELLO, user, this)
+	var isProcessorIntercepted = false
 	
 	fun input(text: String): Response {
 		
@@ -21,36 +24,31 @@ open class DialogProcessor(val user: User) {
 		}
 		
 		val responseBlock = stateProcessor.input(text)
-		this.state = responseBlock.state
-		return responseBlock.response
+		
+		if (isProcessorIntercepted) {
+			isProcessorIntercepted = false
+			try {
+				responseBlock.response.text = (stateProcessor as QuestionableStateProcessor).start()
+				return responseBlock.response
+			} catch (e: Exception) {
+				e.printStackTrace()
+				return input(text)
+			}
+		} else {
+			this.state = responseBlock.state
+			return responseBlock.response
+		}
 	}
 	
-	private fun route(state: State, text: String): Response =
-		when (state) {
-			State.HELLO -> result(TextResolver.getResultStateByText(text))
-			else        -> result(State.HELLO)
-		}
+	fun interceptHandle(stateProcessor: StateProcessor) {
+		this.state = stateProcessor.state
+		this.stateProcessor = stateProcessor
+		this.isProcessorIntercepted = true
+	}
 	
 	fun withResult(newState: State, response: Response): Response {
 		this.state = newState
 		return response
 	}
-	
-	/**
-	 * Render with pre-defined text
-	 */
-	fun result(newState: State): Response {
-		this.state = newState
-		return Response(user, TextResolver.getText(newState.value))
-	}
-	
-	/**
-	 * Render with custom text
-	 */
-	fun result(newState: State, text: String): Response {
-		this.state = newState
-		return Response(user, text)
-	}
-	
 	
 }
