@@ -5,7 +5,7 @@ import com.bot.entity.*
 open class DialogProcessor(val user: User) {
 	
 	var state = State.HELLO
-	var stateProcessor = StateProcessorFactory.getByState(State.HELLO, user)
+	var stateProcessor = StateProcessorFactory.getByState(State.HELLO, user, this)
 	
 	fun input(text: String): Response {
 		
@@ -17,7 +17,7 @@ open class DialogProcessor(val user: User) {
 		println(state)
 		
 		if (state != stateProcessor.state) {
-			stateProcessor = StateProcessorFactory.getByState(state, user)
+			stateProcessor = StateProcessorFactory.getByState(state, user, this)
 		}
 		
 		val responseBlock = stateProcessor.input(text)
