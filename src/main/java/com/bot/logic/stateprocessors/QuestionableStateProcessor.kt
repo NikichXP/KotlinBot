@@ -1,46 +1,45 @@
 package com.bot.logic.stateprocessors
 
-import com.bot.entity.Response
-import com.bot.entity.ResponseBlock
-import com.bot.entity.State
-import com.bot.entity.User
-import com.bot.util.QuestionChat
+import com.bot.entity.*
+import com.bot.logic.ChatProcessor
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Semaphore
 
-class QuestionableStateProcessor(override val user: User, val parentStateProcessor: StateProcessor,
-                                 val questions: QuestionChat) : StateProcessor {
+class QuestionableStateProcessor(val user: User, val chatProcessor: ChatProcessor) {
 	
-	lateinit var nextAction: (String) -> Unit
-	lateinit var message: String
-	
-	override val state = State.CUSTOM_CHAT
-	
-	fun start(): String {
-		val firstPair = questions.next()
-		nextAction = firstPair.second
-		return firstPair.first
+	constructor(user: User, chatProcessor: ChatProcessor, chat: QuestionChat) : this(user, chatProcessor) {
+		this.chatEntity = chat
 	}
 	
-	override fun input(text: String): ResponseBlock {
-		
-		if (this::nextAction.isInitialized) {
-			nextAction.invoke(text)
+	val state = State.CUSTOM_CHAT
+	lateinit var chatEntity: QuestionChat
+	var message: String? = null
+	
+	private val lock = Semaphore(0)
+	private lateinit var worker: CompletableFuture<Void>
+	
+	fun processChat(chat: QuestionChat) {
+		this.chatEntity = chat
+		if (this::worker.isInitialized) {
+			try {
+				worker.cancel(true)
+			} catch (e: Exception) {
+			}
 		}
-		
-		if (questions.isCompleted) {
-			questions.afterAll.invoke()
-			// set handler to previous text processor
-		}
-		
-		try {
-			
-			val next = questions.next()
-			
-			message = next.first
-			nextAction = next.second
-		} catch (e: Exception) {
-			message = questions.
-		}
-		
-		return ResponseBlock(Response(user, message), state)
+		worker = CompletableFuture.runAsync { work() }
 	}
+	
+	fun work() {
+		chatEntity.actions.forEach {
+			chatProcessor.sendMessage(it.first)
+			lock.acquire()
+			it.second.invoke(message!!)
+		}
+	}
+	
+	fun input(text: String) {
+		message = text
+		lock.release()
+	}
+	
 }

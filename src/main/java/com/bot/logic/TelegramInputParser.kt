@@ -14,7 +14,7 @@ class TelegramInputParser {
 	@Autowired
 	lateinit var userRepo: UserRepo
 	
-	val chatProcessors = ConcurrentHashMap<String, DialogProcessor>()
+	val chatProcessors = ConcurrentHashMap<String, ChatProcessor>()
 	
 	fun input(inputJson: String) {
 		try {
@@ -22,9 +22,9 @@ class TelegramInputParser {
 			val chatProcessor = chatProcessors.getOrPut(message.senderId, {
 				val user = userRepo.findById(message.senderId).orElseGet { userRepo.save(User(message.senderId)) }
 				@Suppress("REDUNDANT_ELSE_IN_WHEN")
-				return@getOrPut DialogProcessor(user)
+				return@getOrPut ChatProcessor(user)
 			})
-			Method.sendMessage(chatProcessor.input(message.text))
+			chatProcessor.input(message.text)
 		} catch (e: NullPointerException) {
 			e.printStackTrace()
 			Method.sendMessage("34080460", "error on parse: $inputJson")

@@ -2,14 +2,14 @@ package com.bot.logic.stateprocessors
 
 import com.bot.Ctx
 import com.bot.entity.*
-import com.bot.logic.DialogProcessor
+import com.bot.logic.ChatProcessor
 import com.bot.logic.TextResolver
 import com.bot.repo.CreditObtainsRepo
 import com.bot.repo.CustomerRepo
-import com.bot.util.QuestionChat
+import com.bot.entity.QuestionChat
 import java.time.LocalDateTime
 
-class CreateRequestStateProcessor(override val user: User, val dialogProcessor: DialogProcessor) : StateProcessor {
+class CreateRequestStateProcessor(override val user: User, val chatProcessor: ChatProcessor) : StateProcessor {
 	
 	private val customerRepo = Ctx.get(CustomerRepo::class.java)
 	private val creditObtainsRepo = Ctx.get(CreditObtainsRepo::class.java)
@@ -29,11 +29,11 @@ class CreateRequestStateProcessor(override val user: User, val dialogProcessor: 
 					context["pickupDate"] = LocalDateTime.parse(it)
 				}).then("BSO or other type?", {
 					context["bso"] = it.contains("bso", true)
-				}).afterAll {
+				}).inTheEnd(State.HELLO, {
 					creditObtainsRepo.save(CreditObtains(context))
-				}.endState(State.HELLO)
+				})
 				
-				dialogProcessor.interceptHandle(QuestionableStateProcessor(user = user, parentStateProcessor = this, questions = questions))
+				chatProcessor.interceptHandle(QuestionableStateProcessor(user, chatProcessor, questions))
 				return ResponseBlock(Response(user, ""), this.state)
 			}
 			'2'  -> {
