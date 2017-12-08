@@ -14,6 +14,14 @@ data class Response(var chat_id: String?, var text: String) {
 	constructor(user: User, text: String) : this(user.id, text)
 	constructor(user: User) : this(user.id, "")
 	constructor(chat_id: String?) : this(chat_id, "")
+	constructor(text: String, keys: Array<String>) : this(null, text) {
+		withCustomKeyboard(keys)
+	}
+	
+	constructor(text: String, keys: Array<Array<String>>) : this(null, text) {
+		withMaxtrixKeyboard(keys)
+	}
+	
 	
 	fun withCustomKeyboard(buttons: Array<String>): Response {
 		this.reply_markup = ReplyKeyboardMarkup(buttons)

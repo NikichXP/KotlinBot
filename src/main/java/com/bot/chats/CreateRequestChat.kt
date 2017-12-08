@@ -5,7 +5,7 @@ import com.bot.entity.*
 import com.bot.logic.TextResolver
 import com.bot.repo.CreditObtainsRepo
 import com.bot.repo.CustomerRepo
-import com.bot.entity.QuestionChat
+import com.bot.entity.ChatDialog
 import java.time.LocalDateTime
 
 class CreateRequestChat(val user: User) {
@@ -15,8 +15,8 @@ class CreateRequestChat(val user: User) {
 	private lateinit var creditObtain: CreditObtains
 	private lateinit var customer: Customer
 	
-	fun getChat(): QuestionChat {
-		return QuestionChat()
+	fun getChat(): ChatDialog {
+		return ChatDialog()
 			.setNextChatFunction("1 to create credit widthdraw, 2 for credit limit increase",
 				{
 					return@setNextChatFunction when {
@@ -27,7 +27,7 @@ class CreateRequestChat(val user: User) {
 		
 	}
 	
-	fun getCreditWidthDrawChat() = QuestionChat()
+	fun getCreditWidthDrawChat() = ChatDialog()
 		.then(TextResolver.getText("requestCreate.enterCustomerName"), {
 			creditObtain = CreditObtains()
 			creditObtain.customer = customerRepo.findByFullNameLike(it).orElseGet {
@@ -46,7 +46,7 @@ class CreateRequestChat(val user: User) {
 		.setOnCompleteAction { creditObtainsRepo.save(creditObtain) }
 	
 	
-	fun getCreditLimitIncreaseChat() = QuestionChat()
+	fun getCreditLimitIncreaseChat() = ChatDialog()
 		.then(TextResolver.getText("requestCreate.enterCustomerName"), {
 			TODO("Increase credit limit request")
 		})

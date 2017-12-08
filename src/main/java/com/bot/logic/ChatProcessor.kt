@@ -9,7 +9,7 @@ import java.util.concurrent.Semaphore
 
 open class ChatProcessor(val user: User) {
 	
-	var chat: QuestionChat = BaseChats.hello(user)
+	var chat: ChatDialog = BaseChats.hello(user)
 	var message: String? = null
 	private val lock = Semaphore(0)
 	private var worker: CompletableFuture<Void>
@@ -76,7 +76,7 @@ open class ChatProcessor(val user: User) {
 		Method.sendMessage(user.id, text)
 	}
 	
-	fun interceptWith(chat: QuestionChat) {
+	fun interceptWith(chat: ChatDialog) {
 		try {
 			worker.cancel(true)
 		} catch (e: Exception) {

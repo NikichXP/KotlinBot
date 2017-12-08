@@ -10,7 +10,7 @@ class CreateCustomerChat(val user: User) {
 	private val customerRepo = Ctx.get(CustomerRepo::class.java)
 	private lateinit var customer: Customer
 	
-	fun getChat() = QuestionChat(user.id)
+	fun getChat() = ChatDialog(user.id)
 		.then("Enter full name", {
 			customer = Customer(fullName = it, agent = user.id)
 		})
@@ -21,6 +21,6 @@ class CreateCustomerChat(val user: User) {
 			customer.info = it
 		})
 		.setEachStepFunction { async { customerRepo.save(customer) } }
-		.setNextChatFunction(Response(null).withText("Creation complete. Any action to continue.")
-			.withCustomKeyboard(arrayOf("Home")), { BaseChats.hello(user) })
+		.setNextChatFunction(Response("Creation complete. Any action to continue.", arrayOf("Home")),
+			{ BaseChats.hello(user) })
 }
