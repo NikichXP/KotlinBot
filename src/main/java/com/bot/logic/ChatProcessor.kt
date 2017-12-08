@@ -52,16 +52,16 @@ open class ChatProcessor(val user: User) {
 	
 	fun input(text: String) {
 		
-		when (text) {
-			"/home", "/help" -> {
-				interceptWith(BaseChats.hello(user))
-				return
-			}
-			"/test"          -> {
-				interceptWith(BaseChats.hello(user))
-				return
-			}
-		}
+//		when (text) {
+//			"/home", "/help" -> {
+//				interceptWith(BaseChats.hello(user))
+//				return
+//			}
+//			"/test"          -> {
+//				interceptWith(BaseChats.hello(user))
+//				return
+//			}
+//		}
 		
 		message = text
 		lock.release(1)

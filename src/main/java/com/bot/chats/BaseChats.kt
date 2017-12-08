@@ -24,7 +24,8 @@ object BaseChats {
 	
 	fun chat2(user: User): QuestionChat =
 		QuestionChat()
-			.then("text2-1", { println(it) })
+			.then(Response(null).withText("text2-1")
+				.withCustomKeyboard(arrayOf()), { println(it) })
 			.then("text2-2", { println(it) })
 			.then("text2-3", { println(it) })
 			.then("text2-4", { println(it) })

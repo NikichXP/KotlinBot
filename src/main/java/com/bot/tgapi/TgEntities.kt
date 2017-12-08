@@ -1,6 +1,6 @@
 package com.bot.tgapi
 
-class ReplyKeyboardMarkup {
+class ReplyKeyboardMarkup : ReplyMarkup {
 	
 	constructor(keyboard: ArrayList<ArrayList<KeyboardButton>>) {
 		this.keyboard = keyboard
@@ -26,6 +26,12 @@ class ReplyKeyboardMarkup {
 			this.keyboard.add(add)
 		}
 	}
+}
+
+class ReplyKeyboardRemove(var remove_keyboard: Boolean = true) : ReplyMarkup
+
+interface ReplyMarkup {
+
 }
 
 class KeyboardButton(var text: String = "") {

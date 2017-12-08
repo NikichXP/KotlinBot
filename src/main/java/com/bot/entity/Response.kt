@@ -1,13 +1,15 @@
 package com.bot.entity
 
 import com.bot.tgapi.ReplyKeyboardMarkup
+import com.bot.tgapi.ReplyKeyboardRemove
+import com.bot.tgapi.ReplyMarkup
 import com.google.gson.Gson
 import java.util.*
 
 
 data class Response(var chat_id: String?, var text: String) {
 	
-	var reply_markup: ReplyKeyboardMarkup? = null
+	var reply_markup: ReplyMarkup = ReplyKeyboardRemove()
 	
 	constructor(user: User, text: String) : this(user.id, text)
 	constructor(user: User) : this(user.id, "")
@@ -23,7 +25,7 @@ data class Response(var chat_id: String?, var text: String) {
 		return this
 	}
 	
-	fun andText(text: String): Response {
+	fun withText(text: String): Response {
 		this.text = text
 		return this
 	}
