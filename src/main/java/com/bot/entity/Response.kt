@@ -5,14 +5,15 @@ import com.google.gson.Gson
 import java.util.*
 
 
-data class Response(var chat_id: String, var text: String) {
+data class Response(var chat_id: String?, var text: String) {
 	
 	var reply_markup: ReplyKeyboardMarkup? = null
 	
 	constructor(user: User, text: String) : this(user.id, text)
 	constructor(user: User) : this(user.id, "")
+	constructor(chat_id: String?) : this(chat_id, "")
 	
-	fun withCustomKeyboard (buttons: Array<String>): Response {
+	fun withCustomKeyboard(buttons: Array<String>): Response {
 		this.reply_markup = ReplyKeyboardMarkup(buttons)
 		return this
 	}
@@ -39,6 +40,11 @@ data class Response(var chat_id: String, var text: String) {
 	}
 	
 	fun toJson() = gson.toJson(this)
+	
+	fun ensureUser(chat_id: String): Response {
+		if (this.chat_id == null) this.chat_id = chat_id
+		return this
+	}
 	
 	companion object {
 		val gson = Gson()

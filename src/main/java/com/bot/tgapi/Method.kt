@@ -45,7 +45,6 @@ object Method {
 		println(response.toJson())
 		method("sendMessage", response.toJson())
 	}
-//	} sendMessage(response.chat_id, response.text)
 	
 	fun setupWebhook() {
 		method("setWebhook", "url", hostName)

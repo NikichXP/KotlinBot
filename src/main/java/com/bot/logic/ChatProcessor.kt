@@ -1,68 +1,89 @@
 package com.bot.logic
 
+import com.bot.chats.BaseChats
 import com.bot.entity.*
-import com.bot.logic.stateprocessors.QuestionableStateProcessor
-import com.bot.logic.stateprocessors.StateProcessor
 import com.bot.tgapi.Method
+import java.util.*
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Semaphore
 
 open class ChatProcessor(val user: User) {
 	
-	var state = State.HELLO
-	var stateProcessor = StateProcessorFactory.getByState(State.HELLO, user, this)
-	var isProcessorIntercepted = false
-	lateinit var interceptedDialog: QuestionableStateProcessor
+	var chat: QuestionChat = BaseChats.hello(user)
+	var message: String? = null
+	private val lock = Semaphore(0)
+	private var worker: CompletableFuture<Void>
+	
+	init {
+		worker = CompletableFuture.runAsync { work() }
+	}
+	
+	/**
+	 * Procession order:
+	 * 1. Send message, wait for response. Invoke the response.
+	 * 2. Check if error happens. if error == true -> invoke error function and nextChatDeterminer function
+	 * 3. invoke onEachStepAction
+	 * After all:
+	 * 4. onCompleteAction + nextChatQuestion
+	 * 5. nextChatDeterminer
+	 */
+	fun work() {
+		while (true) { // TODO Change true to other
+			chat.actions.forEach {
+				sendMessage(it.first)
+				lock.acquire()
+				it.second.invoke(message!!)
+				if (chat.eachStepAction != null) {
+					chat.eachStepAction!!.invoke()
+				}
+			}
+			Optional.ofNullable(chat.onCompleteAction).ifPresent { it.invoke() }
+			if (chat.nextChatQuestion != null) {
+				sendMessage(chat.nextChatQuestion!!)
+				lock.acquire()
+			}
+			if (chat.nextChatDeterminer != null) {
+				chat = chat.nextChatDeterminer!!.invoke(message!!)
+			} else {
+				chat = BaseChats.hello(user)
+			}
+		}
+	}
 	
 	fun input(text: String) {
 		
 		when (text) {
 			"/home", "/help" -> {
-				sendMessage(withResult(State.HELLO, Response(user, "Look at keyboard").withMaxtrixKeyboard(TextResolver.mainMenu)))
+				interceptWith(BaseChats.hello(user))
 				return
 			}
 			"/test"          -> {
-				sendMessage(Response(user, "TEST123").withCustomKeyboard(arrayOf("text1", "2", "three")))
+				interceptWith(BaseChats.hello(user))
 				return
 			}
 		}
 		
-		if (isProcessorIntercepted) {
-			interceptedDialog.input(text)
-			return
-		}
+		message = text
+		lock.release(1)
 		
-		println(state)
-		
-		if (state != stateProcessor.state) {
-			stateProcessor = StateProcessorFactory.getByState(state, user, this)
-		}
-		
-		val responseBlock = stateProcessor.input(text)
-		state = responseBlock.state
-		sendMessage(responseBlock.response)
 	}
 	
 	fun sendMessage(response: Response) {
-		Method.sendMessage(response)
+		Method.sendMessage(response.ensureUser(user.id))
 	}
 	
 	fun sendMessage(text: String) {
 		Method.sendMessage(user.id, text)
 	}
 	
-	fun interceptHandle(stateProcessor: QuestionableStateProcessor) {
-		this.state = stateProcessor.state
-		this.interceptedDialog = stateProcessor
-		this.isProcessorIntercepted = true
-	}
-	
-	fun cancelInterception(state: State) {
-		this.state = state
-		this.isProcessorIntercepted = false
-	}
-	
-	fun withResult(newState: State, response: Response): Response {
-		this.state = newState
-		return response
+	fun interceptWith(chat: QuestionChat) {
+		try {
+			worker.cancel(true)
+		} catch (e: Exception) {
+			e.printStackTrace()
+		}
+		this.chat = chat
+		worker = CompletableFuture.runAsync { work() }
 	}
 	
 }
