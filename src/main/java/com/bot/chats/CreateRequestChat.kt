@@ -3,16 +3,21 @@ package com.bot.chats
 import com.bot.Ctx
 import com.bot.entity.*
 import com.bot.logic.TextResolver
-import com.bot.repo.CreditObtainsRepo
+import com.bot.repo.CreditObtainRepo
 import com.bot.repo.CustomerRepo
 import com.bot.entity.ChatDialog
+import com.bot.entity.requests.CreditIncreaseRequest
+import com.bot.entity.requests.CreditObtainRequest
+import com.bot.repo.CreditIncreaseRepo
 import java.time.LocalDateTime
 
 class CreateRequestChat(val user: User) {
 	
 	private val customerRepo = Ctx.get(CustomerRepo::class.java)
-	private val creditObtainsRepo = Ctx.get(CreditObtainsRepo::class.java)
-	private lateinit var creditObtain: CreditObtains
+	private val creditObtainsRepo = Ctx.get(CreditObtainRepo::class.java)
+	private val creditIncreaseRepo = Ctx.get(CreditIncreaseRepo::class.java)
+	private lateinit var creditObtainRequest: CreditObtainRequest
+	private lateinit var creditIncreaseRequest: CreditIncreaseRequest
 	private lateinit var customer: Customer
 	
 	fun getChat(): ChatDialog {
@@ -29,27 +34,32 @@ class CreateRequestChat(val user: User) {
 	
 	fun getCreditWidthDrawChat() = ChatDialog()
 		.then(TextResolver.getText("requestCreate.enterCustomerName"), {
-			creditObtain = CreditObtains()
-			creditObtain.customer = customerRepo.findByFullNameLike(it).orElseGet {
+			customer = customerRepo.findByFullNameLike(it).orElseGet {
 				customerRepo.findById(it).orElseGet { null }
 			}
+			creditObtainRequest = CreditObtainRequest(customer = customer)
 		})
 		.then("Enter load amount", {
-			creditObtain.amount = it.toDouble()
+			creditObtainRequest.amount = it.toDouble()
 		})
 		.then("When is the pickup? Use 2015-10-30 10:30 as format", {
-			creditObtain.pickupDate = LocalDateTime.parse(it)
+			creditObtainRequest.pickupDate = LocalDateTime.parse(it)
 		})
 		.then("BSO or other type?", {
-			creditObtain.bso = it.contains("bso", true)
+			creditObtainRequest.bso = it.contains("bso", true)
 		})
-		.setOnCompleteAction { creditObtainsRepo.save(creditObtain) }
+		.setOnCompleteAction { creditObtainsRepo.save(creditObtainRequest) }
 	
 	
 	fun getCreditLimitIncreaseChat() = ChatDialog()
 		.then(TextResolver.getText("requestCreate.enterCustomerName"), {
-			TODO("Increase credit limit request")
+			customer = customerRepo.findByFullNameLike(it).orElseGet {
+				customerRepo.findById(it).orElseGet { null }
+			}
+			creditIncreaseRequest = CreditIncreaseRequest(customer = customer)
 		})
+		.then("Enter amount, $", { creditIncreaseRequest.amount = it.toDouble() })
+		.setOnCompleteAction { creditIncreaseRepo.save(creditIncreaseRequest) }
 }
 
 /*
