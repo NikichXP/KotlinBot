@@ -11,7 +11,7 @@ class Response(var chat_id: String?, text: String) {
 	
 	var reply_markup: ReplyMarkup = ReplyKeyboardRemove()
 	var text: String
-	var textFx: (() -> String)? = null
+	var lateinitFx: (() -> String)? = null
 	
 	constructor(user: User, text: String) : this(user.id, text)
 	constructor(user: User) : this(user.id, "")
@@ -25,15 +25,15 @@ class Response(var chat_id: String?, text: String) {
 	}
 	
 	constructor(user: User, text: () -> String) : this(user.id, "") {
-		this.textFx = text
+		this.lateinitFx = text
 	}
 	
 	constructor(user: String, text: () -> String) : this(user, "") {
-		this.textFx = text
+		this.lateinitFx = text
 	}
 	
 	constructor(text: () -> String) : this(null, "") {
-		this.textFx = text
+		this.lateinitFx = text
 	}
 	
 	init {
@@ -56,7 +56,7 @@ class Response(var chat_id: String?, text: String) {
 	}
 	
 	fun withLateInitText(text: () -> String): Response {
-		this.textFx = text
+		this.lateinitFx = text
 		return this
 	}
 	
@@ -72,7 +72,7 @@ class Response(var chat_id: String?, text: String) {
 	}
 	
 	fun toJson(): String {
-		if (textFx != null) text = textFx!!.invoke()
+		if (lateinitFx != null) text = lateinitFx!!.invoke()
 		return gson.toJson(this)
 	}
 	

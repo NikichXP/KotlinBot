@@ -16,7 +16,9 @@ object BaseChats {
 				return@setNextChatFunction when (it) {
 					TextResolver.getText("create_customer") -> CreateCustomerChat(user).getChat()
 					TextResolver.getText("create_request")  -> CreateRequestChat(user).getChat()
-					"2"                                     -> chat2(user)
+					TextResolver.getText("my_requests")     -> MyRequestsChat(user).getChat()
+						"2"
+					                                        -> chat2(user)
 					"3"                                     -> chat3(user)
 					else                                    -> hello(user)
 				}

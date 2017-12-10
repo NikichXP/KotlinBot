@@ -9,6 +9,7 @@ class ChatDialog(val userid: String? = null) {
 	var nextChatQuestion: Response? = null
 	var nextChatDeterminer: ((String) -> ChatDialog)? = null
 	var onCompleteAction: (() -> Unit)? = null
+	var onCompleteMessage: Response? = null
 	
 	val errorHandler: Pair<(Exception) -> Boolean, (String) -> ChatDialog> = Pair({ e -> true },
 		{ string -> this.nextChatDeterminer!!.invoke(string) })
@@ -55,6 +56,11 @@ class ChatDialog(val userid: String? = null) {
 	
 	fun setOnCompleteAction(action: (() -> Unit)): ChatDialog {
 		this.onCompleteAction = action
+		return this
+	}
+	
+	fun setOnCompleteMessage(message: Response): ChatDialog {
+		this.onCompleteMessage = message
 		return this
 	}
 }

@@ -37,7 +37,7 @@ class CreateRequestChat(val user: User) {
 			customer = customerRepo.findByFullNameLike(it).orElseGet {
 				customerRepo.findById(it).orElseGet { null }
 			}
-			creditObtainRequest = CreditObtainRequest(customer = customer)
+			creditObtainRequest = CreditObtainRequest(customer = customer, creator = user.id)
 		})
 		.then("Enter load amount", {
 			creditObtainRequest.amount = it.toDouble()
@@ -56,7 +56,7 @@ class CreateRequestChat(val user: User) {
 			customer = customerRepo.findByFullNameLike(it).orElseGet {
 				customerRepo.findById(it).orElseGet { null }
 			}
-			creditIncreaseRequest = CreditIncreaseRequest(customer = customer)
+			creditIncreaseRequest = CreditIncreaseRequest(customer = customer, creator = user.id)
 		})
 		.then("Enter amount, $", { creditIncreaseRequest.amount = it.toDouble() })
 		.setOnCompleteAction { creditIncreaseRepo.save(creditIncreaseRequest) }

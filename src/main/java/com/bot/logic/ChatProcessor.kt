@@ -45,6 +45,7 @@ open class ChatProcessor(val user: User) {
 					}
 				}
 				Optional.ofNullable(chat.onCompleteAction).ifPresent { it.invoke() }
+				Optional.ofNullable(chat.onCompleteMessage).ifPresent { sendMessage(it) }
 			} catch (e: Exception) {
 				val sb = StringBuilder().append(e.javaClass.name).append("  ->  ")
 					.append(e.localizedMessage).append("\n")

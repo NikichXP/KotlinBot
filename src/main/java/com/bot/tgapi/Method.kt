@@ -42,8 +42,9 @@ object Method {
 	}
 	
 	fun sendMessage(response: Response) {
-		println(response.toJson())
-		method("sendMessage", response.toJson())
+		val res = response.toJson()
+		println(res)
+		method("sendMessage", res)
 	}
 	
 	fun setupWebhook() {

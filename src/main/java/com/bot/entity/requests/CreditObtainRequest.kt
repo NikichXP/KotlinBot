@@ -8,13 +8,12 @@ import java.util.*
 
 data class CreditObtainRequest(@Id val id: String = UUID.randomUUID().toString().substring(0..10),
                                @DBRef override var customer: Customer,
+                               override var creator: String,
                                override var amount: Double = 0.0,
                                var pickupDate: LocalDateTime? = null,
                                var bso: Boolean? = null) : CreditRequest {
 	
-	constructor(map: Map<String, Any>) : this(customer = map["customer"]!! as Customer) {
-		this.pickupDate = map["pickupDate"]!! as LocalDateTime
-		this.bso = map["bso"]!! as Boolean
-		this.amount = map["amount"]!! as Double
-	}
+	override val type: String = "Credit obtain"
+	override var status: String = "Pending"
+	
 }
