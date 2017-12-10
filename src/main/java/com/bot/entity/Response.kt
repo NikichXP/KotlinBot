@@ -7,9 +7,11 @@ import com.google.gson.Gson
 import java.util.*
 
 
-data class Response(var chat_id: String?, var text: String) {
+class Response(var chat_id: String?, text: String) {
 	
 	var reply_markup: ReplyMarkup = ReplyKeyboardRemove()
+	var text: String
+	var textFx: (() -> String)? = null
 	
 	constructor(user: User, text: String) : this(user.id, text)
 	constructor(user: User) : this(user.id, "")
@@ -22,6 +24,21 @@ data class Response(var chat_id: String?, var text: String) {
 		withMaxtrixKeyboard(keys)
 	}
 	
+	constructor(user: User, text: () -> String) : this(user.id, "") {
+		this.textFx = text
+	}
+	
+	constructor(user: String, text: () -> String) : this(user, "") {
+		this.textFx = text
+	}
+	
+	constructor(text: () -> String) : this(null, "") {
+		this.textFx = text
+	}
+	
+	init {
+		this.text = text
+	}
 	
 	fun withCustomKeyboard(buttons: Array<String>): Response {
 		this.reply_markup = ReplyKeyboardMarkup(buttons)
@@ -38,6 +55,11 @@ data class Response(var chat_id: String?, var text: String) {
 		return this
 	}
 	
+	fun withLateInitText(text: () -> String): Response {
+		this.textFx = text
+		return this
+	}
+	
 	fun withViewData(text: String): Response {
 		if (text.startsWith("#keyboard")) {
 			val keys = LinkedList(text.substring("#keyboard:".length).split("#").toList())
@@ -49,7 +71,10 @@ data class Response(var chat_id: String?, var text: String) {
 		return this
 	}
 	
-	fun toJson() = gson.toJson(this)
+	fun toJson(): String {
+		if (textFx != null) text = textFx!!.invoke()
+		return gson.toJson(this)
+	}
 	
 	fun ensureUser(chat_id: String): Response {
 		if (this.chat_id == null) this.chat_id = chat_id

@@ -2,24 +2,34 @@ package com.bot.entity
 
 import java.util.LinkedList
 
-// TODO Доделать error-хэндлинг
 class ChatDialog(val userid: String? = null) {
 	
 	val actions = LinkedList<Pair<Response, (String) -> Unit>>()
-	/** errorDeterminer - errorMessage - nextDialog */
-	val errorHandler = LinkedList<Triple<() -> Boolean, String, () -> ChatDialog>>()
 	var eachStepAction: (() -> Unit)? = null
 	var nextChatQuestion: Response? = null
 	var nextChatDeterminer: ((String) -> ChatDialog)? = null
 	var onCompleteAction: (() -> Unit)? = null
 	
-	fun then(text: String, action: (String) -> Unit): ChatDialog {
+	val errorHandler: Pair<(Exception) -> Boolean, (String) -> ChatDialog> = Pair({ e -> true },
+		{ string -> this.nextChatDeterminer!!.invoke(string) })
+	
+	fun then(text: String, action: (String) -> Unit //,
+		//	         errorHandler: (Exception) -> Boolean = { false }, errorMessage: String = "Unexpected error",
+		//	         postFixHandler: () -> ChatDialog =
+		//	         { throw IllegalStateException("Unexpected error") }
+	): ChatDialog {
 		actions.add(Pair(Response(userid, text), action))
+		//		errorHandler.add(Triple(isErrorFunction, errorMessage, postFixHandler))
 		return this
 	}
 	
-	fun then(response: Response, action: (String) -> Unit): ChatDialog {
+	fun then(response: Response, action: (String) -> Unit //,
+		//	         isErrorFunction: () -> Boolean = { false }, errorMessage: String = "Unexpected error",
+		//	         postFixHandler: () -> ChatDialog =
+		//	         { throw IllegalStateException("Unexpected error") }
+	): ChatDialog {
 		actions.add(Pair(response, action))
+		//		errorHandler.add(Triple(isErrorFunction, errorMessage, postFixHandler))
 		return this
 	}
 	

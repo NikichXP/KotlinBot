@@ -28,16 +28,36 @@ open class ChatProcessor(val user: User) {
 	 * 5. nextChatDeterminer
 	 */
 	fun work() {
-		while (true) { // TODO Change true to other
-			chat.actions.forEach {
-				sendMessage(it.first)
-				lock.acquire()
-				it.second.invoke(message!!)
-				if (chat.eachStepAction != null) {
-					chat.eachStepAction!!.invoke()
+		mainCycle@ while (true) {
+			try {
+				chat.actions.forEach {
+					sendMessage(it.first)
+					lock.acquire()
+					try {
+						it.second.invoke(message!!)
+						if (chat.eachStepAction != null) {
+							chat.eachStepAction!!.invoke()
+						}
+					} catch (e: Exception) {
+						if (chat.errorHandler.first.invoke(e)) {
+							throw e
+						}
+					}
 				}
+				Optional.ofNullable(chat.onCompleteAction).ifPresent { it.invoke() }
+			} catch (e: Exception) {
+				val sb = StringBuilder().append(e.javaClass.name).append("  ->  ")
+					.append(e.localizedMessage).append("\n")
+				e.stackTrace
+					.filter { it.className.startsWith("com.bot") }
+					.forEach {
+						sb.append(it.className).append(" : ").append(it.methodName).append(" @ line ")
+							.append(it.lineNumber).append("\n")
+					}
+				sendMessage(sb.toString())
+				e.printStackTrace()
 			}
-			Optional.ofNullable(chat.onCompleteAction).ifPresent { it.invoke() }
+			
 			if (chat.nextChatQuestion != null) {
 				sendMessage(chat.nextChatQuestion!!)
 				lock.acquire()
@@ -52,16 +72,16 @@ open class ChatProcessor(val user: User) {
 	
 	fun input(text: String) {
 		
-//		when (text) {
-//			"/home", "/help" -> {
-//				interceptWith(BaseChats.hello(user))
-//				return
-//			}
-//			"/test"          -> {
-//				interceptWith(BaseChats.hello(user))
-//				return
-//			}
-//		}
+		//		when (text) {
+		//			"/home", "/help" -> {
+		//				interceptWith(BaseChats.hello(user))
+		//				return
+		//			}
+		//			"/test"          -> {
+		//				interceptWith(BaseChats.hello(user))
+		//				return
+		//			}
+		//		}
 		
 		message = text
 		lock.release(1)

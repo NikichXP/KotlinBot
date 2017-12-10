@@ -11,7 +11,7 @@ class CreateCustomerChat(val user: User) {
 	private lateinit var customer: Customer
 	
 	fun getChat() = ChatDialog(user.id)
-		.then("Enter full name", {
+		.then(Response { "Test lateinit text" }, {
 			customer = Customer(fullName = it, agent = user.id)
 		})
 		.then("Enter client address", {
