@@ -61,7 +61,9 @@ object TextResolver {
 	fun foo() = "bar"
 	
 	fun getStateText(state: State) = storedData["state.${state.value.toLowerCase()}"] ?: "[[Add merge text: 'state.${state.value.toLowerCase()}']]"
-	fun getText(text: String) = storedData[text.toLowerCase()] ?: storedData["$" + text.toLowerCase()] ?: "[[Add text here: $text]]"
+	fun getText(text: String, correct: Boolean = true) = storedData[text.toLowerCase()]
+		?: storedData["$" + text.toLowerCase()]
+		?: if (correct) "[[Add text here: $text]]" else text
 	
 	fun getCausedVar(text: String) =
 		storedData.filterKeys { storedData[it] == text }.keys.stream().findAny().orElse(null)

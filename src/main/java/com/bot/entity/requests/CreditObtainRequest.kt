@@ -10,8 +10,10 @@ data class CreditObtainRequest(@Id val id: String = UUID.randomUUID().toString()
                                @DBRef override var customer: Customer,
                                override var creator: String,
                                override var amount: Double = 0.0,
+                               override var approver: String? = null,
                                var pickupDate: LocalDateTime? = null,
                                var bso: Boolean? = null) : CreditRequest {
+	
 	
 	override val type: String = "Credit obtain"
 	override var status: String = "Pending"

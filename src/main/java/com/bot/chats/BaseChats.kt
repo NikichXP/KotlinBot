@@ -14,13 +14,13 @@ object BaseChats {
 				.withViewData(TextResolver.getStateText(State.HELLO))
 				.withMaxtrixKeyboard(TextResolver.mainMenu), {
 				return@setNextChatFunction when (it) {
-					TextResolver.getText("create_customer") -> CreateCustomerChat(user).getChat()
-					TextResolver.getText("create_request")  -> CreateRequestChat(user).getChat()
-					TextResolver.getText("my_requests")     -> MyRequestsChat(user).getChat()
-						"2"
-					                                        -> chat2(user)
-					"3"                                     -> chat3(user)
-					else                                    -> hello(user)
+					TextResolver.getText("create_customer")  -> CreateCustomerChat(user).getChat()
+					TextResolver.getText("create_request")   -> CreateRequestChat(user).getChat()
+					TextResolver.getText("my_requests")      -> MyRequestsChat(user).getChat()
+					TextResolver.getText("pending_requests") -> PendingRequestsChat(user).getChat()
+					"2"                                      -> chat2(user)
+					"3"                                      -> chat3(user)
+					else                                     -> hello(user)
 				}
 			})
 	
