@@ -1,6 +1,6 @@
 package com.bot.chats
 
-import com.bot.entity.ChatDialog
+import com.bot.entity.ChatBuilder
 import com.bot.entity.Response
 import com.bot.entity.State
 import com.bot.entity.User
@@ -8,11 +8,11 @@ import com.bot.logic.TextResolver
 
 object BaseChats {
 	
-	fun hello(user: User): ChatDialog =
-		ChatDialog()
+	fun hello(user: User): ChatBuilder =
+		ChatBuilder()
 			.setNextChatFunction(Response(null)
 				.withViewData(TextResolver.getStateText(State.HELLO))
-				.withMaxtrixKeyboard(TextResolver.mainMenu), {
+				.withCustomKeyboard(TextResolver.mainMenu), {
 				return@setNextChatFunction when (it) {
 					TextResolver.getText("create_customer")  -> CreateCustomerChat(user).getChat()
 					TextResolver.getText("create_request")   -> CreateRequestChat(user).getChat()
@@ -24,10 +24,10 @@ object BaseChats {
 				}
 			})
 	
-	fun chat2(user: User): ChatDialog =
-		ChatDialog()
+	fun chat2(user: User): ChatBuilder =
+		ChatBuilder()
 			.then(Response(null).withText("text2-1")
-				.withCustomKeyboard(arrayOf()), { println(it) })
+				.withCustomKeyboard(arrayOf<String>()), { println(it) })
 			.then("text2-2", { println(it) })
 			.then("text2-3", { println(it) })
 			.then("text2-4", { println(it) })
@@ -40,8 +40,8 @@ object BaseChats {
 				}
 			})
 	
-	fun chat3(user: User): ChatDialog =
-		ChatDialog()
+	fun chat3(user: User): ChatBuilder =
+		ChatBuilder()
 			.then("text3-1", { println(it) })
 			.then("text3-2", { println(it) })
 			.then("text3-3", { println(it) })

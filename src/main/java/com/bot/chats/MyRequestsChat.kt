@@ -1,7 +1,7 @@
 package com.bot.chats
 
 import com.bot.Ctx
-import com.bot.entity.ChatDialog
+import com.bot.entity.ChatBuilder
 import com.bot.entity.Response
 import com.bot.entity.User
 import com.bot.entity.requests.CreditRequest
@@ -16,9 +16,9 @@ class MyRequestsChat(val user: User) {
 	private var requestList = mutableListOf<CreditRequest>()
 	private lateinit var select: CreditRequest
 	
-	fun getChat(): ChatDialog {
+	fun getChat(): ChatBuilder {
 		val int = AtomicInteger(0)
-		return ChatDialog()
+		return ChatBuilder()
 			.then(Response {
 				requestList.addAll(creditObtainsRepo.findByCreator(user.id))
 				requestList.addAll(creditIncreaseRepo.findByCreator(user.id))

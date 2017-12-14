@@ -1,5 +1,6 @@
 package com.bot.entity
 
+import com.bot.tgapi.InlineKeyboardMarkup
 import com.bot.tgapi.ReplyKeyboardMarkup
 import com.bot.tgapi.ReplyKeyboardRemove
 import com.bot.tgapi.ReplyMarkup
@@ -21,7 +22,7 @@ class Response(var chat_id: String?, text: String) {
 	}
 	
 	constructor(text: String, keys: Array<Array<String>>) : this(null, text) {
-		withMaxtrixKeyboard(keys)
+		withCustomKeyboard(keys)
 	}
 	
 	constructor(user: User, text: () -> String) : this(user.id, "") {
@@ -45,8 +46,18 @@ class Response(var chat_id: String?, text: String) {
 		return this
 	}
 	
-	fun withMaxtrixKeyboard(buttons: Array<Array<String>>): Response {
+	fun withCustomKeyboard(buttons: Array<Array<String>>): Response {
 		this.reply_markup = ReplyKeyboardMarkup(buttons)
+		return this
+	}
+	
+	fun withInlineKeyboard(buttons: Array<String>): Response {
+		this.reply_markup = InlineKeyboardMarkup(buttons)
+		return this
+	}
+	
+	fun withInlineKeyboard(buttons: Array<Array<String>>): Response {
+		this.reply_markup = InlineKeyboardMarkup(buttons)
 		return this
 	}
 	

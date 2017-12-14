@@ -2,23 +2,23 @@ package com.bot.entity
 
 import java.util.LinkedList
 
-class ChatDialog(val userid: String? = null) {
+class ChatBuilder(val userid: String? = null) {
 	
 	val actions = LinkedList<Pair<Response, (String) -> Unit>>()
 	var eachStepAction: (() -> Unit)? = null
 	var nextChatQuestion: Response? = null
-	var nextChatDeterminer: ((String) -> ChatDialog)? = null
+	var nextChatDeterminer: ((String) -> ChatBuilder)? = null
 	var onCompleteAction: (() -> Unit)? = null
 	var onCompleteMessage: Response? = null
 	
-	val errorHandler: Pair<(Exception) -> Boolean, (String) -> ChatDialog> = Pair({ e -> true },
+	val errorHandler: Pair<(Exception) -> Boolean, (String) -> ChatBuilder> = Pair({ e -> true },
 		{ string -> this.nextChatDeterminer!!.invoke(string) })
 	
 	fun then(text: String, action: (String) -> Unit //,
 		//	         errorHandler: (Exception) -> Boolean = { false }, errorMessage: String = "Unexpected error",
 		//	         postFixHandler: () -> ChatDialog =
 		//	         { throw IllegalStateException("Unexpected error") }
-	): ChatDialog {
+	): ChatBuilder {
 		actions.add(Pair(Response(userid, text), action))
 		//		errorHandler.add(Triple(isErrorFunction, errorMessage, postFixHandler))
 		return this
@@ -28,38 +28,38 @@ class ChatDialog(val userid: String? = null) {
 		//	         isErrorFunction: () -> Boolean = { false }, errorMessage: String = "Unexpected error",
 		//	         postFixHandler: () -> ChatDialog =
 		//	         { throw IllegalStateException("Unexpected error") }
-	): ChatDialog {
+	): ChatBuilder {
 		actions.add(Pair(response, action))
 		//		errorHandler.add(Triple(isErrorFunction, errorMessage, postFixHandler))
 		return this
 	}
 	
-	fun setNextChatFunction(text: String, function: (String) -> ChatDialog): ChatDialog {
+	fun setNextChatFunction(text: String, function: (String) -> ChatBuilder): ChatBuilder {
 		nextChatQuestion = Response(userid, text)
 		return setNextChatFunction(function)
 	}
 	
-	fun setNextChatFunction(response: Response, function: (String) -> ChatDialog): ChatDialog {
+	fun setNextChatFunction(response: Response, function: (String) -> ChatBuilder): ChatBuilder {
 		nextChatQuestion = response
 		return setNextChatFunction(function)
 	}
 	
-	fun setNextChatFunction(function: (String) -> ChatDialog): ChatDialog {
+	fun setNextChatFunction(function: (String) -> ChatBuilder): ChatBuilder {
 		nextChatDeterminer = function
 		return this
 	}
 	
-	fun setEachStepFunction(function: () -> Unit): ChatDialog {
+	fun setEachStepFunction(function: () -> Unit): ChatBuilder {
 		this.eachStepAction = function
 		return this
 	}
 	
-	fun setOnCompleteAction(action: (() -> Unit)): ChatDialog {
+	fun setOnCompleteAction(action: (() -> Unit)): ChatBuilder {
 		this.onCompleteAction = action
 		return this
 	}
 	
-	fun setOnCompleteMessage(message: Response): ChatDialog {
+	fun setOnCompleteMessage(message: Response): ChatBuilder {
 		this.onCompleteMessage = message
 		return this
 	}

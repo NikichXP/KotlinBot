@@ -5,11 +5,13 @@ import com.bot.entity.*
 import com.bot.logic.TextResolver
 import com.bot.repo.CreditObtainRepo
 import com.bot.repo.CustomerRepo
-import com.bot.entity.ChatDialog
+import com.bot.entity.ChatBuilder
 import com.bot.entity.requests.CreditIncreaseRequest
 import com.bot.entity.requests.CreditObtainRequest
 import com.bot.repo.CreditIncreaseRepo
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 
 class CreateRequestChat(val user: User) {
 	
@@ -20,19 +22,22 @@ class CreateRequestChat(val user: User) {
 	private lateinit var creditIncreaseRequest: CreditIncreaseRequest
 	private lateinit var customer: Customer
 	
-	fun getChat(): ChatDialog {
-		return ChatDialog()
-			.setNextChatFunction("1 to create credit widthdraw, 2 for credit limit increase",
+	fun getChat(): ChatBuilder {
+		return ChatBuilder()
+			.setNextChatFunction(Response(user.id, "1 to create credit widthdraw, 2 for credit limit increase")
+				.withInlineKeyboard(arrayOf("Credit widthdraw", "Limit increase", "Cancel")),
 				{
 					return@setNextChatFunction when {
-						it.contains("1") -> getCreditWidthDrawChat()
-						else             -> getCreditLimitIncreaseChat()
+						it.contains("1")         -> getCreditWidthDrawChat()
+						it == "Credit widthdraw" -> getCreditWidthDrawChat()
+						it == "Cancel"           -> BaseChats.hello(user)
+						else                     -> getCreditLimitIncreaseChat()
 					}
 				})
 		
 	}
 	
-	fun getCreditWidthDrawChat() = ChatDialog()
+	fun getCreditWidthDrawChat() = ChatBuilder()
 		.then(TextResolver.getText("requestCreate.enterCustomerName"), {
 			customer = customerRepo.findByFullNameLike(it).orElseGet {
 				customerRepo.findById(it).orElseGet { null }
@@ -43,7 +48,14 @@ class CreateRequestChat(val user: User) {
 			creditObtainRequest.amount = it.toDouble()
 		})
 		.then("When is the pickup? Use 2015-10-30 10:30 as format", {
-			creditObtainRequest.pickupDate = LocalDateTime.parse(it)
+			if (!it.contains('T') && it.contains(' ')) {
+				creditObtainRequest.pickupDate = LocalDateTime.of(
+					LocalDate.parse(it.split(" ")[0]),
+					LocalTime.parse(it.split(" ")[1])
+				)
+			} else {
+				creditObtainRequest.pickupDate = LocalDateTime.parse(it)
+			}
 		})
 		.then("BSO or other type?", {
 			creditObtainRequest.bso = it.contains("bso", true)
@@ -51,7 +63,7 @@ class CreateRequestChat(val user: User) {
 		.setOnCompleteAction { creditObtainsRepo.save(creditObtainRequest) }
 	
 	
-	fun getCreditLimitIncreaseChat() = ChatDialog()
+	fun getCreditLimitIncreaseChat() = ChatBuilder()
 		.then(TextResolver.getText("requestCreate.enterCustomerName"), {
 			customer = customerRepo.findByFullNameLike(it).orElseGet {
 				customerRepo.findById(it).orElseGet { null }

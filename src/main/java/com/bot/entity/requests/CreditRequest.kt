@@ -4,6 +4,7 @@ import com.bot.entity.Customer
 
 interface CreditRequest {
 	
+	val id: String
 	val type: String
 	var customer: Customer
 	var amount: Double

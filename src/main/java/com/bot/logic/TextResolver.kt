@@ -30,6 +30,10 @@ object TextResolver {
 			)
 		).lines().reduce { a, b -> a + b }.orElse("{}"), ConcurrentHashMap::class.java)
 		
+		storedData.forEach { t: String, u: String ->
+			storedData.put(t.toLowerCase(), u)
+		}
+		
 		val menuString = storedData["menu_components"]
 		
 		if (menuString != null) {

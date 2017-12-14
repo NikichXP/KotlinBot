@@ -10,8 +10,8 @@ class CreateCustomerChat(val user: User) {
 	private val customerRepo = Ctx.get(CustomerRepo::class.java)
 	private lateinit var customer: Customer
 	
-	fun getChat() = ChatDialog(user.id)
-		.then(Response { "Test lateinit text" }, {
+	fun getChat() = ChatBuilder(user.id)
+		.then(Response { "Enter client name" }, {
 			customer = Customer(fullName = it, agent = user.id)
 		})
 		.then("Enter client address", {
