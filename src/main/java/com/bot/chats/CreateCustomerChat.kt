@@ -21,6 +21,13 @@ class CreateCustomerChat(val user: User) {
 			customer.info = it
 		})
 		.setEachStepFunction { async { customerRepo.save(customer) } }
-		.setNextChatFunction(Response("Creation complete. Any action to continue.", arrayOf("Home")),
-			{ BaseChats.hello(user) })
+		.setNextChatFunction(Response("Creation complete. Continue home or create request",
+			arrayOf("Home", "Request")),
+			{
+				return@setNextChatFunction when (it) {
+					"Request" -> CreateRequestChat(user, customer).getAction()
+					else -> BaseChats.hello(user)
+				}
+			})
+	
 }

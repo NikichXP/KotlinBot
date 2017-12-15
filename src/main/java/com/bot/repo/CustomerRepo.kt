@@ -6,6 +6,6 @@ import java.util.*
 
 interface CustomerRepo: MongoRepository<Customer, String> {
 	
-	fun findByFullNameLike (fullName: String): Optional<Customer>
+	fun findByFullNameLike (fullName: String): MutableList<Customer>
 	
 }

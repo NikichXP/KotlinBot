@@ -4,8 +4,10 @@ import com.bot.entity.Message
 import com.bot.entity.User
 import com.bot.tgapi.Method
 import com.bot.repo.UserRepo
+import com.google.gson.JsonParser
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.lang.UnsupportedOperationException
 import java.util.concurrent.ConcurrentHashMap
 
 @Service
@@ -17,15 +19,32 @@ class TelegramInputParser {
 	val chatProcessors = ConcurrentHashMap<String, ChatProcessor>()
 	
 	fun input(inputJson: String) {
+		
+		println("Input JSON:" + inputJson)
+		
 		try {
-			val message = Message(inputJson)
+			var message: Message
+			var jsonObject = JsonParser().parse(inputJson).asJsonObject
+			when {
+				jsonObject.has("message")        -> message = Message(inputJson)
+				jsonObject.has("callback_query") -> {
+					jsonObject = jsonObject.getAsJsonObject("callback_query")
+					message = Message(
+						id = jsonObject.get("id").asString,
+						senderId = jsonObject.getAsJsonObject("from").get("id").asString,
+						text = jsonObject["data"].asString,
+						textMessageJson = jsonObject
+					)
+				}
+				else                             -> throw UnsupportedOperationException("Need to update Telegram Input Parser, $inputJson")
+			}
 			val chatProcessor = chatProcessors.getOrPut(message.senderId, {
 				val user = userRepo.findById(message.senderId).orElseGet { userRepo.save(User(message.senderId)) }
 				@Suppress("REDUNDANT_ELSE_IN_WHEN")
 				return@getOrPut ChatProcessor(user)
 			})
 			chatProcessor.input(message.text)
-		} catch (e: NullPointerException) {
+		} catch (e: Exception) {
 			e.printStackTrace()
 			Method.sendMessage("34080460", "error on parse: $inputJson")
 		}
