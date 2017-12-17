@@ -36,6 +36,11 @@ class CreateRequestChat(val user: User) {
 		return ChatBuilder()
 			.setNextChatFunction("Enter client name or ID", {
 				customerList = customerRepo.findByFullNameLike(it)
+				customerRepo.findByFullNameLowerCaseLike(it.toLowerCase()).forEach {
+					if (!customerList.contains(it)) {
+						customerList.add(it)
+					}
+				}
 				customerRepo.findById(it).ifPresent { customerList.add(it) }
 				return@setNextChatFunction chooseClient()
 			})
@@ -80,7 +85,7 @@ class CreateRequestChat(val user: User) {
 				}
 			})
 	
-	fun getCreditWidthDrawChat() = ChatBuilder()
+	private fun getCreditWidthDrawChat() = ChatBuilder()
 		.beforeExecution { creditObtainRequest = CreditObtainRequest(creator = user.id, customer = customer!!) }
 		.then("Enter load amount", {
 			creditObtainRequest.amount = it.toDouble()
@@ -114,7 +119,7 @@ class CreateRequestChat(val user: User) {
 		.setOnCompleteAction { creditObtainsRepo.save(creditObtainRequest) }
 	
 	
-	fun getCreditLimitIncreaseChat() = ChatBuilder()
+	private fun getCreditLimitIncreaseChat() = ChatBuilder()
 		.beforeExecution { creditIncreaseRequest = CreditIncreaseRequest(creator = user.id, customer = customer!!) }
 		.then("Enter amount, $", { creditIncreaseRequest.amount = it.toDouble() })
 		.setOnCompleteAction { creditIncreaseRepo.save(creditIncreaseRequest) }

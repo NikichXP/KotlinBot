@@ -18,7 +18,7 @@ class PendingRequestsChat(val user: User) {
 	private val creditObtainsRepo = Ctx.get(CreditObtainRepo::class.java)
 	private val creditIncreaseRepo = Ctx.get(CreditIncreaseRepo::class.java)
 	private val customerRepo = Ctx.get(CustomerRepo::class.java)
-	private var requestList = mutableListOf<CreditRequest>()
+	private lateinit var requestList: MutableList<CreditRequest>
 	//	private val workingLock = ConcurrentSkipListSet<String>() // TODO Fix concurrent issues
 	private lateinit var select: CreditRequest
 	
@@ -26,6 +26,7 @@ class PendingRequestsChat(val user: User) {
 		val int = AtomicInteger(0)
 		return ChatBuilder()
 			.then(Response {
+				requestList = mutableListOf()
 				requestList.addAll(creditObtainsRepo.findByStatus(Status.PENDING.value))
 				requestList.addAll(creditIncreaseRepo.findByStatus(Status.PENDING.value))
 				requestList.stream().map {
