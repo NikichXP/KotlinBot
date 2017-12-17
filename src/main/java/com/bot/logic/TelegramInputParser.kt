@@ -2,6 +2,7 @@ package com.bot.logic
 
 import com.bot.entity.Message
 import com.bot.entity.User
+import com.bot.future.AltChatProcessor
 import com.bot.tgapi.Method
 import com.bot.repo.UserRepo
 import com.google.gson.JsonParser
@@ -17,6 +18,8 @@ class TelegramInputParser {
 	lateinit var userRepo: UserRepo
 	
 	val chatProcessors = ConcurrentHashMap<String, ChatProcessor>()
+	@Autowired
+	lateinit var newChatProcessor: AltChatProcessor
 	
 	fun input(inputJson: String) {
 		
@@ -38,12 +41,12 @@ class TelegramInputParser {
 				}
 				else                             -> throw UnsupportedOperationException("Need to update Telegram Input Parser, $inputJson")
 			}
-			val chatProcessor = chatProcessors.getOrPut(message.senderId, {
+			chatProcessors.getOrPut(message.senderId, {
 				val user = userRepo.findById(message.senderId).orElseGet { userRepo.save(User(message.senderId)) }
 				@Suppress("REDUNDANT_ELSE_IN_WHEN")
 				return@getOrPut ChatProcessor(user)
-			})
-			chatProcessor.input(message.text)
+			}).input(message.text)
+			//			newChatProcessor.inbox(message)
 		} catch (e: Exception) {
 			e.printStackTrace()
 			Method.sendMessage("34080460", "error on parse: $inputJson")

@@ -28,7 +28,8 @@ open class ChatProcessor(val user: User) {
 	 * 5. nextChatDeterminer
 	 */
 	fun work() {
-		mainCycle@ while (true) {
+		while (true) {
+			Optional.ofNullable(chat.beforeExecution).ifPresent { it.invoke() }
 			try {
 				chat.actions.forEach {
 					sendMessage(it.first)

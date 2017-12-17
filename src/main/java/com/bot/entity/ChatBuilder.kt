@@ -5,6 +5,7 @@ import java.util.LinkedList
 class ChatBuilder(val userid: String? = null) {
 	
 	val actions = LinkedList<Pair<Response, (String) -> Unit>>()
+	var beforeExecution: (() -> Unit)? = null
 	var eachStepAction: (() -> Unit)? = null
 	var nextChatQuestion: Response? = null
 	var nextChatDeterminer: ((String) -> ChatBuilder)? = null
@@ -31,6 +32,11 @@ class ChatBuilder(val userid: String? = null) {
 	): ChatBuilder {
 		actions.add(Pair(response, action))
 		//		errorHandler.add(Triple(isErrorFunction, errorMessage, postFixHandler))
+		return this
+	}
+	
+	fun beforeExecution(action: () -> Unit): ChatBuilder {
+		this.beforeExecution = action
 		return this
 	}
 	

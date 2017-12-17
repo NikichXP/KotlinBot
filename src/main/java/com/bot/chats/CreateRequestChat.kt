@@ -9,9 +9,13 @@ import com.bot.entity.ChatBuilder
 import com.bot.entity.requests.CreditIncreaseRequest
 import com.bot.entity.requests.CreditObtainRequest
 import com.bot.repo.CreditIncreaseRepo
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.TemporalAdjusters
+import java.time.temporal.TemporalField
 import java.util.concurrent.atomic.AtomicInteger
 
 class CreateRequestChat(val user: User) {
@@ -77,18 +81,32 @@ class CreateRequestChat(val user: User) {
 			})
 	
 	fun getCreditWidthDrawChat() = ChatBuilder()
+		.beforeExecution { creditObtainRequest = CreditObtainRequest(creator = user.id, customer = customer!!) }
 		.then("Enter load amount", {
 			creditObtainRequest.amount = it.toDouble()
 		})
-		.then("When is the pickup? Use 2015-10-30 10:30 as format", {
-			if (!it.contains('T') && it.contains(' ')) {
-				creditObtainRequest.pickupDate = LocalDateTime.of(
-					LocalDate.parse(it.split(" ")[0]),
-					LocalTime.parse(it.split(" ")[1])
-				)
-			} else {
-				creditObtainRequest.pickupDate = LocalDateTime.parse(it)
+		.then("When is the pickup? Formats: 5/24, 2015-4-25\nAlso available: /today /tomorrow /monday /tuesday " +
+			"/wednesday /thursday /friday /saturday /sunday", {
+			creditObtainRequest.pickupDate = when {
+				it == "/today"     -> LocalDate.now()
+				it == "/tomorrow"  -> LocalDate.now().plusDays(1)
+				it == "/monday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY))
+				it == "/tuesday"   -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.TUESDAY))
+				it == "/wednesday" -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY))
+				it == "/thursday"  -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.THURSDAY))
+				it == "/friday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.FRIDAY))
+				it == "/saturday"  -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SATURDAY))
+				it == "/sunday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY))
+				else               -> {
+					if (it.matches(Regex("\\d{1,2}/\\d{1,2}"))) {
+						LocalDate.now().withMonth(it.split("/")[0].toInt())
+							.withDayOfMonth(it.split("/")[1].toInt())
+					} else {
+						LocalDate.parse(it)
+					}
+				}
 			}
+			
 		})
 		.then("BSO or other type?", {
 			creditObtainRequest.bso = it.contains("bso", true)
@@ -97,6 +115,7 @@ class CreateRequestChat(val user: User) {
 	
 	
 	fun getCreditLimitIncreaseChat() = ChatBuilder()
+		.beforeExecution { creditIncreaseRequest = CreditIncreaseRequest(creator = user.id, customer = customer!!) }
 		.then("Enter amount, $", { creditIncreaseRequest.amount = it.toDouble() })
 		.setOnCompleteAction { creditIncreaseRepo.save(creditIncreaseRequest) }
 }
