@@ -42,7 +42,7 @@ class TelegramInputParser {
 				else                             -> throw UnsupportedOperationException("Need to update Telegram Input Parser, $inputJson")
 			}
 			chatProcessors.getOrPut(message.senderId, {
-				val user = userRepo.findById(message.senderId).orElseGet { userRepo.save(User(message.senderId)) }
+				val user = userRepo.findById(message.senderId).orElseGet { userRepo.save(User(message)) }
 				@Suppress("REDUNDANT_ELSE_IN_WHEN")
 				return@getOrPut ChatProcessor(user)
 			}).input(message.text)

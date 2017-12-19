@@ -17,7 +17,7 @@ class CreateCustomerChat(val user: User) {
 		.then("Enter client address", {
 			customer.address = it
 		})
-		.then("Enter client info", {
+		.then("Enter client contact info", {
 			customer.info = it
 		})
 		.setEachStepFunction { async { customerRepo.save(customer) } }

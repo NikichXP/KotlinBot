@@ -9,6 +9,7 @@ import com.bot.entity.ChatBuilder
 import com.bot.entity.requests.CreditIncreaseRequest
 import com.bot.entity.requests.CreditObtainRequest
 import com.bot.repo.CreditIncreaseRepo
+import com.bot.util.GSheetsAPI
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -23,6 +24,7 @@ class CreateRequestChat(val user: User) {
 	private val customerRepo = Ctx.get(CustomerRepo::class.java)
 	private val creditObtainsRepo = Ctx.get(CreditObtainRepo::class.java)
 	private val creditIncreaseRepo = Ctx.get(CreditIncreaseRepo::class.java)
+	private val sheetsAPI = Ctx.get(GSheetsAPI::class.java)
 	private lateinit var creditObtainRequest: CreditObtainRequest
 	private lateinit var creditIncreaseRequest: CreditIncreaseRequest
 	private var customer: Customer? = null
@@ -116,13 +118,26 @@ class CreateRequestChat(val user: User) {
 		.then("BSO or other type?", {
 			creditObtainRequest.bso = it.contains("bso", true)
 		})
-		.setOnCompleteAction { creditObtainsRepo.save(creditObtainRequest) }
+		.setOnCompleteAction {
+			creditObtainsRepo.save(creditObtainRequest)
+			sheetsAPI.writeToTable("default", "Requests", -1, LocalDate.now().toString(), user.id,
+				customer!!.fullName, customer!!.id, customer!!.creditLimit.toString(),
+				creditObtainRequest.type, creditObtainRequest.amount.toString(),
+				customer!!.info ?: "No info", customer!!.contactData ?: "No data") //Date	Agent	Customer name	Acc#	Current limit	Type
+		}
 	
 	
 	private fun getCreditLimitIncreaseChat() = ChatBuilder()
 		.beforeExecution { creditIncreaseRequest = CreditIncreaseRequest(creator = user.id, customer = customer!!) }
 		.then("Enter amount, $", { creditIncreaseRequest.amount = it.toDouble() })
-		.setOnCompleteAction { creditIncreaseRepo.save(creditIncreaseRequest) }
+		.setOnCompleteAction {
+			creditIncreaseRepo.save(creditIncreaseRequest)
+			sheetsAPI.writeToTable("default", "Requests", -1, LocalDate.now().toString(),
+				user.username + "/" + user.id,
+				customer!!.fullName, customer!!.id, customer!!.creditLimit.toString(),
+				creditIncreaseRequest.type, creditIncreaseRequest.amount.toString(),
+				customer!!.info ?: "No info", customer!!.contactData ?: "No data") //Date	Agent	Customer name	Acc#	Current limit	Type
+		}
 }
 
 /*

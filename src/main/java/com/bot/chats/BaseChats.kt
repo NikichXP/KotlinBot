@@ -1,12 +1,23 @@
 package com.bot.chats
 
+import com.bot.Ctx
 import com.bot.entity.ChatBuilder
 import com.bot.entity.Response
 import com.bot.entity.State
 import com.bot.entity.User
 import com.bot.logic.TextResolver
+import com.bot.util.GSheetsAPI
+import com.nikichxp.util.Async.async
 
 object BaseChats {
+	
+	lateinit var gSheetsAPI: GSheetsAPI
+	
+	init {
+		async {
+			gSheetsAPI = Ctx.get(GSheetsAPI::class.java)
+		}
+	}
 	
 	fun hello(user: User): ChatBuilder =
 		ChatBuilder()
@@ -18,11 +29,20 @@ object BaseChats {
 					TextResolver.getText("create_request")   -> CreateRequestChat(user).getChat()
 					TextResolver.getText("my_requests")      -> MyRequestsChat(user).getChat()
 					TextResolver.getText("pending_requests") -> PendingRequestsChat(user).getChat()
+					"test", "/test"                          -> test(user)
 					"2"                                      -> chat2(user)
 					"3"                                      -> chat3(user)
 					else                                     -> hello(user)
 				}
 			})
+	
+	fun test(user: User): ChatBuilder =
+		ChatBuilder()
+			.setOnCompleteAction {
+				gSheetsAPI.writeToTable(gSheetsAPI.sheetId,
+					"Test", gSheetsAPI.getFirstFreeLine(gSheetsAPI.sheetId, "Test"),
+					"A", "B", "C", "D")
+			}
 	
 	fun chat2(user: User): ChatBuilder =
 		ChatBuilder()
