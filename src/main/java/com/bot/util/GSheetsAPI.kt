@@ -126,7 +126,7 @@ class GSheetsAPI
 			
 			return JsonUtil.of(x3).getJson().getAsJsonArray("values").get(0).asJsonArray.size() + 1
 		} catch (ingored: Exception) {
-			return 0
+			return 1
 		}
 		
 	}

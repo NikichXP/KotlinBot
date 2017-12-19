@@ -1,6 +1,7 @@
 package com.bot.logic
 
 import com.bot.chats.BaseChats
+import com.bot.chats.RegisterChat
 import com.bot.entity.*
 import com.bot.tgapi.Method
 import java.util.*
@@ -9,7 +10,8 @@ import java.util.concurrent.Semaphore
 
 open class ChatProcessor(val user: User) {
 	
-	var chat: ChatBuilder = BaseChats.hello(user)
+	var chat: ChatBuilder = if (user.type == User.Companion.Type.WAIT) RegisterChat(user).getChat()
+	else BaseChats.hello(user)
 	var message: String? = null
 	private val lock = Semaphore(0)
 	private var worker: CompletableFuture<Void>
