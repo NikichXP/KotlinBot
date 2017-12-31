@@ -2,7 +2,6 @@ package com.bot.chats
 
 import com.bot.Ctx
 import com.bot.entity.*
-import com.bot.logic.TextResolver
 import com.bot.repo.CreditObtainRepo
 import com.bot.repo.CustomerRepo
 import com.bot.entity.ChatBuilder
@@ -12,11 +11,7 @@ import com.bot.repo.CreditIncreaseRepo
 import com.bot.util.GSheetsAPI
 import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAdjusters
-import java.time.temporal.TemporalField
 import java.util.concurrent.atomic.AtomicInteger
 
 class CreateRequestChat(val user: User) {
@@ -94,17 +89,17 @@ class CreateRequestChat(val user: User) {
 		})
 		.then("When is the pickup? Formats: 5/24, 2015-4-25\nAlso available: /today /tomorrow /monday /tuesday " +
 			"/wednesday /thursday /friday /saturday /sunday", {
-			creditObtainRequest.pickupDate = when {
-				it == "/today"     -> LocalDate.now()
-				it == "/tomorrow"  -> LocalDate.now().plusDays(1)
-				it == "/monday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY))
-				it == "/tuesday"   -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.TUESDAY))
-				it == "/wednesday" -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY))
-				it == "/thursday"  -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.THURSDAY))
-				it == "/friday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.FRIDAY))
-				it == "/saturday"  -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SATURDAY))
-				it == "/sunday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY))
-				else               -> {
+			creditObtainRequest.pickupDate = when (it) {
+				"/today"     -> LocalDate.now()
+				"/tomorrow"  -> LocalDate.now().plusDays(1)
+				"/monday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY))
+				"/tuesday"   -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.TUESDAY))
+				"/wednesday" -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY))
+				"/thursday"  -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.THURSDAY))
+				"/friday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.FRIDAY))
+				"/saturday"  -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SATURDAY))
+				"/sunday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY))
+				else         -> {
 					if (it.matches(Regex("\\d{1,2}/\\d{1,2}"))) {
 						LocalDate.now().withMonth(it.split("/")[0].toInt())
 							.withDayOfMonth(it.split("/")[1].toInt())
@@ -113,30 +108,50 @@ class CreateRequestChat(val user: User) {
 					}
 				}
 			}
-			
 		})
 		.then("BSO or other type?", {
 			creditObtainRequest.bso = it.contains("bso", true)
 		})
+		.then("Add a comment", { creditObtainRequest.comment = it })
 		.setOnCompleteAction {
 			creditObtainsRepo.save(creditObtainRequest)
-			sheetsAPI.writeToTable("default", "Requests", -1, LocalDate.now().toString(), user.id,
-				customer!!.fullName, customer!!.id, customer!!.creditLimit.toString(),
-				creditObtainRequest.type, creditObtainRequest.amount.toString(),
-				customer!!.info ?: "No info", customer!!.contactData ?: "No data") //Date	Agent	Customer name	Acc#	Current limit	Type
+			sheetsAPI.writeToTable("default", "Requests", -1,
+				creditObtainRequest.id,
+				LocalDate.now().toString(), //request.id	LocalDate.now()	user.name	customer.name
+				user.username + "/" + user.id,
+				customer!!.fullName,
+				customer!!.id, //customer.id	новое поле fb	select.amount	String	select.status.value	пустое поле
+				"TODO FB", // TODO FB
+				creditObtainRequest.amount.toString(),
+				creditObtainRequest.status,
+				"",
+				creditObtainRequest.comment, //новое поле comment	customer.contact	что?
+				customer!!.contactData ?: "No data",
+				"",
+				
+				creditObtainRequest.type,
+				customer!!.info ?: "No info",
+				customer!!.creditLimit.toString())
 		}
 	
 	
 	private fun getCreditLimitIncreaseChat() = ChatBuilder()
 		.beforeExecution { creditIncreaseRequest = CreditIncreaseRequest(creator = user.id, customer = customer!!) }
 		.then("Enter amount, $", { creditIncreaseRequest.amount = it.toDouble() })
+		.then("Add a comment", { creditIncreaseRequest.comment = it })
 		.setOnCompleteAction {
 			creditIncreaseRepo.save(creditIncreaseRequest)
-			sheetsAPI.writeToTable("default", "Requests", -1, LocalDate.now().toString(),
+			sheetsAPI.writeToTable("default", "Requests", -1,
+				creditIncreaseRequest.id,
+				LocalDate.now().toString(),
 				user.username + "/" + user.id,
-				customer!!.fullName, customer!!.id, customer!!.creditLimit.toString(),
-				creditIncreaseRequest.type, creditIncreaseRequest.amount.toString(),
-				customer!!.info ?: "No info", customer!!.contactData ?: "No data") //Date	Agent	Customer name	Acc#	Current limit	Type
+				customer!!.fullName,
+				customer!!.id,
+				customer!!.creditLimit.toString(),
+				creditIncreaseRequest.type,
+				creditIncreaseRequest.amount.toString(),
+				customer!!.info ?: "No info",
+				customer!!.contactData ?: "No data")
 		}
 }
 

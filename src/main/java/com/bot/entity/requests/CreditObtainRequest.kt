@@ -17,5 +17,6 @@ data class CreditObtainRequest(@Id override val id: String = UUID.randomUUID().t
 	
 	override val type: String = "Credit obtain"
 	override var status: String = "Pending"
+	override var comment: String = ""
 	
 }

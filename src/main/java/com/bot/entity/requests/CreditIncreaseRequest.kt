@@ -13,4 +13,6 @@ class CreditIncreaseRequest(@Id override var id: String = UUID.randomUUID().toSt
 	
 	override val type: String = "Credit increase"
 	override var status: String = "Pending"
+	override var comment: String = ""
+	
 }
