@@ -17,9 +17,7 @@ class Customer(@Id var id: String = UUID.randomUUID().toString().replace("-", ""
                var documents: ArrayList<String> = ArrayList(),
                var address: String = "Nowhere",
                var info: String? = null,
-               var contactData: String? = null,
-               var growth: Long = 0,
-               var releaseId: String? = null
+               var contactData: String? = null
 ) {
 	
 	var fullName: String = ""

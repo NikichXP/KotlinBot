@@ -11,6 +11,7 @@ import com.bot.entity.requests.Status
 import com.bot.repo.CreditIncreaseRepo
 import com.bot.repo.CreditObtainRepo
 import com.bot.repo.CustomerRepo
+import com.bot.tgapi.Method
 import java.util.concurrent.atomic.AtomicInteger
 
 class PendingRequestsChat(val user: User) {
@@ -49,8 +50,7 @@ class PendingRequestsChat(val user: User) {
 				when (it) { // TODO Change credit limit for customer
 					"/cancel"  -> return@setNextChatFunction getChat()
 					"/approve" -> {
-						select.status = Status.APPROVED.value
-						select.customer.creditLimit = select.amount
+						return@setNextChatFunction if (select is CreditObtainRequest) approveRelease() else approveCreditLimit()
 					}
 					"/decline" -> {
 						select.status = Status.DECLINED.value
@@ -58,24 +58,47 @@ class PendingRequestsChat(val user: User) {
 					"/home"    -> {
 					}
 					else       -> {
-						select.status = Status.MODIFIED.value + "@$it"
-						select.customer.creditLimit = it.toDouble()
+						Method.sendMessage(user.id, "Unknown action")
+						return@setNextChatFunction getChat()
 					}
 				}
 				return@setNextChatFunction BaseChats.hello(user)
 			})
-			.setOnCompleteAction {
-				customerRepo.save(select.customer)
-				if (select is CreditObtainRequest) {
-					creditObtainsRepo.save(select as CreditObtainRequest)
-				} else {
-					creditIncreaseRepo.save(select as CreditIncreaseRequest)
-				}
-			}
 			.setOnCompleteMessage(Response {
 				"Request ${select.id} (${select.customer.fullName} for $${select.amount}) " +
 					"is now ${select.status}"
 			})
-		
+	}
+	
+	fun approveCreditLimit(): ChatBuilder {
+		val oldAmount = select.amount
+		return ChatBuilder()
+			.then("Enter amount", { select.amount = it.toDouble() })
+			.setNextChatFunction("Enter Release ID or /cancel", {
+				if (it.contains("cancel")) {
+					return@setNextChatFunction getChat()
+				} else {
+					select.status = Status.APPROVED.value
+					return@setNextChatFunction BaseChats.hello(user)
+				}
+			})
+			.setOnCompleteAction {
+				// TODO Update client, and write new info to table
+			}
+	}
+	
+	fun approveRelease(): ChatBuilder {
+		val select_ = select as CreditObtainRequest
+		return ChatBuilder()
+			.setNextChatFunction("Enter Release ID or /cancel", {
+				if (it.contains("cancel")) {
+					return@setNextChatFunction getChat()
+				} else {
+					select_.releaseID = it
+					select_.status = Status.APPROVED.value
+					creditObtainsRepo.save(select_)
+					return@setNextChatFunction BaseChats.hello(user)
+				}
+			})
 	}
 }
