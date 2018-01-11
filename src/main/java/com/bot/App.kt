@@ -1,16 +1,12 @@
 package com.bot
 
-import com.bot.logic.TextResolver
 import com.bot.tgapi.Method
-import com.google.gson.Gson
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.ConfigurableApplicationContext
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Level
 import java.util.logging.Logger
-import kotlin.collections.HashMap
 
 @SpringBootApplication
 open class App
@@ -44,14 +40,4 @@ fun main(args: Array<String>) {
 		println("X")
 		continue
 	} while (false)
-	
-//	val map = Gson().fromJson<ConcurrentHashMap<String, String>>("""{"key1":"value1","key2":"value2"}""", ConcurrentHashMap::class.java)
-//	map.put("key1", "value1")
-//	map.put("key2", "value2")
-	
-//	TextResolver.foo()
-//
-//	println(map)
-	
-//	println(Gson().toJson(map).toString())
 }

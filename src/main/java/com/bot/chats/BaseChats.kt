@@ -20,7 +20,7 @@ object BaseChats {
 	}
 	
 	fun hello(user: User): ChatBuilder =
-		ChatBuilder()
+		ChatBuilder().name("hello")
 			.setNextChatFunction(Response(null)
 				.withViewData(TextResolver.getStateText(State.HELLO))
 				.withCustomKeyboard(TextResolver.mainMenu), {

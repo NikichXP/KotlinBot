@@ -13,7 +13,7 @@ class CreateCustomerChat(val user: User) {
 	private val sheetsAPI = Ctx.get(GSheetsAPI::class.java)
 	private lateinit var customer: Customer
 	
-	fun getChat() = ChatBuilder(user.id)
+	fun getChat() = ChatBuilder(user.id).name("createCustomerChat")
 		.then(Response { "Enter client name" }, {
 			customer = Customer(fullName = it, agent = user.id)
 		})

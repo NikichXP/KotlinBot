@@ -11,6 +11,7 @@ class ChatBuilder(val userid: String? = null) {
 	var nextChatDeterminer: ((String) -> ChatBuilder)? = null
 	var onCompleteAction: (() -> Unit)? = null
 	var onCompleteMessage: Response? = null
+	var name: String = "_noname"
 	
 	val errorHandler: Pair<(Exception) -> Boolean, (String) -> ChatBuilder> = Pair({ e -> true },
 		{ string -> this.nextChatDeterminer!!.invoke(string) })
@@ -67,6 +68,11 @@ class ChatBuilder(val userid: String? = null) {
 	
 	fun setOnCompleteMessage(message: Response): ChatBuilder {
 		this.onCompleteMessage = message
+		return this
+	}
+	
+	fun name(name: String): ChatBuilder {
+		this.name = name
 		return this
 	}
 }

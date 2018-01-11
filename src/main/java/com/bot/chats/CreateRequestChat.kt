@@ -30,7 +30,7 @@ class CreateRequestChat(val user: User) {
 	}
 	
 	fun getChat(): ChatBuilder {
-		return ChatBuilder()
+		return ChatBuilder().name("createRequest_home")
 			.setNextChatFunction("Enter client name or ID", {
 				customerList = customerRepo.findByFullNameLike(it)
 				customerRepo.findByFullNameLowerCaseLike(it.toLowerCase()).forEach {
@@ -43,7 +43,7 @@ class CreateRequestChat(val user: User) {
 			})
 	}
 	
-	fun chooseClient(): ChatBuilder = ChatBuilder()
+	fun chooseClient(): ChatBuilder = ChatBuilder().name("createRequest_selectClient")
 		.setNextChatFunction(Response {
 			val num = AtomicInteger(0)
 			
@@ -70,7 +70,7 @@ class CreateRequestChat(val user: User) {
 		})
 	
 	
-	fun getAction() = ChatBuilder()
+	fun getAction() = ChatBuilder().name("createRequest_selectAction")
 		.setNextChatFunction(Response(user.id, "1 to create credit widthdraw, 2 for credit limit increase")
 			.withInlineKeyboard(arrayOf("Credit widthdraw", "Limit increase", "Cancel")),
 			{
@@ -82,7 +82,7 @@ class CreateRequestChat(val user: User) {
 				}
 			})
 	
-	private fun getCreditWidthDrawChat() = ChatBuilder()
+	private fun getCreditWidthDrawChat() = ChatBuilder().name("createRequest_widthdraw")
 		.beforeExecution { creditObtainRequest = CreditObtainRequest(creator = user.id, customer = customer!!) }
 		.then("Enter load amount", {
 			creditObtainRequest.amount = it.toDouble()
@@ -135,7 +135,7 @@ class CreateRequestChat(val user: User) {
 		}
 	
 	
-	private fun getCreditLimitIncreaseChat() = ChatBuilder()
+	private fun getCreditLimitIncreaseChat() = ChatBuilder().name("createRequest_increase")
 		.beforeExecution { creditIncreaseRequest = CreditIncreaseRequest(creator = user.id, customer = customer!!) }
 		.then("Enter amount, $", { creditIncreaseRequest.amount = it.toDouble() })
 		.then("Add a comment", { creditIncreaseRequest.comment = it })

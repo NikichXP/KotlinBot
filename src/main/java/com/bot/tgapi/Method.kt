@@ -43,7 +43,7 @@ object Method {
 	
 	fun sendMessage(response: Response) {
 		val res = response.toJson()
-		println(res)
+//		println(res)
 		method("sendMessage", res)
 	}
 	
