@@ -47,10 +47,13 @@ class PendingRequestsChat(val user: User) {
 				Or set your own credit limit (12345.67)
 			"""
 			}, {
+				
+				fun getCorrespondingChat(request: CreditRequest): ChatBuilder = if (request is CreditObtainRequest) approveRelease() else approveCreditLimit()
+				
 				when (it) { // TODO Change credit limit for customer
 					"/cancel"  -> return@setNextChatFunction getChat()
 					"/approve" -> {
-						return@setNextChatFunction if (select is CreditObtainRequest) approveRelease() else approveCreditLimit()
+						return@setNextChatFunction getCorrespondingChat(select)
 					}
 					"/decline" -> {
 						select.status = Status.DECLINED.value
@@ -58,6 +61,10 @@ class PendingRequestsChat(val user: User) {
 					"/home"    -> {
 					}
 					else       -> {
+						if (it.toDoubleOrNull() != null) {
+							select.amount = it.toDouble()
+							return@setNextChatFunction getCorrespondingChat(select)
+						}
 						Method.sendMessage(user.id, "Unknown action")
 						return@setNextChatFunction getChat()
 					}
@@ -100,5 +107,8 @@ class PendingRequestsChat(val user: User) {
 					return@setNextChatFunction BaseChats.hello(user)
 				}
 			})
+			.setOnCompleteAction {
+				// TODO Update client, write data to table
+			}
 	}
 }
