@@ -32,12 +32,7 @@ class CreateRequestChat(val user: User) {
 	fun getChat(): ChatBuilder {
 		return ChatBuilder().name("createRequest_home")
 			.setNextChatFunction("Enter client name or ID", {
-				customerList = customerRepo.findByFullNameLike(it)
-				customerRepo.findByFullNameLowerCaseLike(it.toLowerCase()).forEach {
-					if (!customerList.contains(it)) {
-						customerList.add(it)
-					}
-				}
+				customerList = customerRepo.findByFullNameLowerCaseLike(it.toLowerCase())
 				customerRepo.findById(it).ifPresent { customerList.add(it) }
 				return@setNextChatFunction chooseClient()
 			})
@@ -63,7 +58,7 @@ class CreateRequestChat(val user: User) {
 				}
 				return@setNextChatFunction getAction()
 			} else {
-				customerList = customerRepo.findByFullNameLike(it)
+				customerList = customerRepo.findByFullNameLowerCaseLike(it.toLowerCase())
 				customerRepo.findById(it).ifPresent { customerList.add(it) }
 				return@setNextChatFunction chooseClient()
 			}
@@ -123,14 +118,12 @@ class CreateRequestChat(val user: User) {
 				customer!!.id, //customer.id	новое поле fb	select.amount	String	select.status.value	пустое поле
 				"TODO FB", // TODO FB
 				creditObtainRequest.amount.toString(),
+				creditObtainRequest.type,
 				creditObtainRequest.status,
 				"",
 				creditObtainRequest.comment, //новое поле comment	customer.contact	что?
-				customer!!.contactData ?: "No data",
-				"",
-				
-				creditObtainRequest.type,
 				customer!!.info ?: "No info",
+				"",
 				customer!!.creditLimit.toString())
 		}
 	
@@ -141,17 +134,22 @@ class CreateRequestChat(val user: User) {
 		.then("Add a comment", { creditIncreaseRequest.comment = it })
 		.setOnCompleteAction {
 			creditIncreaseRepo.save(creditIncreaseRequest)
-			sheetsAPI.writeToTable("default", "Requests", -1,
+			sheetsAPI.writeToTable("default", "Credit limit", -1,
 				creditIncreaseRequest.id,
 				LocalDate.now().toString(),
 				user.username + "/" + user.id,
 				customer!!.fullName,
 				customer!!.id,
-				customer!!.creditLimit.toString(),
+				"",
 				creditIncreaseRequest.type,
-				creditIncreaseRequest.amount.toString(),
+				creditIncreaseRequest.status,
+				"",
+				"TODO documents",
+				creditIncreaseRequest.comment,
 				customer!!.info ?: "No info",
-				customer!!.contactData ?: "No data")
+				"$0",
+				creditIncreaseRequest.amount.toString(),
+				customer!!.creditLimit.toString())
 		}
 }
 

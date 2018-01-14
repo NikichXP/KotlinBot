@@ -24,63 +24,6 @@ class GSheetsAPI
 	
 	val sheetId = "1H_LgnsVg_3WxD9nXE76KzGNEl40gA5OUlwXmOCmp-e8"
 	
-	//	@Synchronized protected fun writeOrderToTable(order: Order): Boolean {
-	//		val sheetsId: String?
-	//		if (eventIdToSheet[order.getLinkedEvent().getId()] == null) {
-	//			sheetsId = createEventTable(order.getLinkedEvent())
-	//		} else {
-	//			sheetsId = eventIdToSheet[order.getLinkedEvent().getId()]
-	//		}
-	//		if (!checkIfTableExist(sheetsId, order.getOfferClone().getBeginDate().toString())) {
-	//			return false
-	//		}
-	//		val counter = AtomicInteger(getFirstFreeLine(sheetsId, order.getOfferClone().getBeginDate().toString()))
-	//		order.getPersons().forEach { person ->
-	//			writeToTable(sheetsId, order.getOfferClone().getBeginDate().toString(),
-	//					counter.getAndIncrement(), order.getId(), person.getFullName(), person.getPhone(), person.getType(),
-	//					person.getSort(), order.getDeposit() + "", order.getFullPrice() + "", order.getComment()
-	//			)
-	//		}
-	//		return true
-	//	}
-	
-	//	@Synchronized private fun createEventTable(event: Event): String? {
-	//		val headers = HttpHeaders()
-	//		headers.set("charset", "UTF-8")
-	//		headers.contentType = MediaType.APPLICATION_JSON
-	//
-	//		val arr = event.getOffers().stream()
-	//			.map({ offer -> Json.of("properties", Json.of("title", offer.getBeginDate().toString())).json() })
-	//			.collect(Collectors.toList<T>())
-	//
-	//		val entity = HttpEntity<T>(
-	//				Json.of(
-	//						"properties", Json
-	//					.of("title", event.getName()))
-	//					.and("sheets", arr)
-	//					.toString().getBytes(), headers)
-	//
-	//		val response = restTemplate.postForEntity(
-	//				"https://sheets.googleapis.com/v4/spreadsheets?access_token=" + gAuthAPI.accessToken, entity, String::class.java)
-	//
-	//		if (debug) {
-	//			println(response)
-	//			TelegramBotMethods.sendMessage(response.toString())
-	//		}
-	//
-	//		if (response.statusCodeValue != 200) {
-	//			println("Warning, response is not 200")
-	//			return null
-	//		}
-	//
-	//		val spreadsheetId = JsonUtil.of(response.body!!).getX("spreadsheetId")
-	//
-	//		configRepo.save(ElseAPI.ConfigPair("sheet-" + event.getId(), spreadsheetId))
-	//		eventIdToSheet.put(event.getId(), spreadsheetId)
-	//
-	//		return spreadsheetId
-	//	}
-	
 	@Synchronized
 	fun createPage(sheetId: String, title: String): Int {
 		val requestJson = "{\"requests\":[{\"addSheet\":{\"properties\":{\"title\":\"$title\"}}}]}"
@@ -177,6 +120,10 @@ class GSheetsAPI
 			println("WARNING! Error writing to sheet " + id + " data: " + Arrays.toString(data))
 			println(response)
 		}
+	}
+	
+	fun updateWhere(criteria: () -> String, vararg data: String) {
+	
 	}
 	
 	fun checkIfTableExist(sheetId: String, pageTextId: String): Boolean {

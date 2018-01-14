@@ -11,7 +11,7 @@ import java.util.concurrent.Semaphore
 
 open class ChatProcessor(val user: User) {
 	
-	var chat: ChatBuilder = if (user.type == User.Companion.Type.WAIT) RegisterChat(user).getChat()
+	var chat: ChatBuilder = if (user.type == User.Companion.Type.NONAME) RegisterChat(user).getChat()
 	else BaseChats.hello(user)
 	var message: String? = null
 	private val lock = Semaphore(0)
@@ -98,16 +98,6 @@ open class ChatProcessor(val user: User) {
 	
 	fun sendMessage(text: String) {
 		Method.sendMessage(user.id, text)
-	}
-	
-	fun interceptWith(chat: ChatBuilder) {
-		try {
-			worker.cancel()
-		} catch (e: Exception) {
-			e.printStackTrace()
-		}
-		this.chat = chat
-		worker = launch { work() }
 	}
 	
 }

@@ -51,6 +51,11 @@ class ChatBuilder(val userid: String? = null) {
 		return setNextChatFunction(function)
 	}
 	
+	fun setNextChatFunction(responseFx: () -> String, function: (String) -> ChatBuilder): ChatBuilder {
+		nextChatQuestion = Response(responseFx)
+		return setNextChatFunction(function)
+	}
+	
 	fun setNextChatFunction(function: (String) -> ChatBuilder): ChatBuilder {
 		nextChatDeterminer = function
 		return this

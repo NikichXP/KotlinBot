@@ -29,6 +29,7 @@ object BaseChats {
 					TextResolver.getText("create_request")   -> CreateRequestChat(user).getChat()
 					TextResolver.getText("my_requests")      -> MyRequestsChat(user).getChat()
 					TextResolver.getText("pending_requests") -> PendingRequestsChat(user).getChat()
+					TextResolver.getText("manage_users")     -> ManageUsersChat(user).getChat()
 					"test", "/test"                          -> test(user)
 					"2"                                      -> chat2(user)
 					"3"                                      -> chat3(user)

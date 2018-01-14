@@ -34,7 +34,7 @@ class RegisterChat(var user: User) {
 		.setNextChatFunction("Wait for admin to approve you", {
 			user = userRepo.findById(user.id).get()
 			
-			if (user.type != User.Companion.Type.WAIT) {
+			if (user.type != User.Companion.Type.NONAME) {
 				return@setNextChatFunction BaseChats.hello(user)
 			}
 			return@setNextChatFunction getApprove()

@@ -10,12 +10,13 @@ import org.springframework.web.client.RestTemplate
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
+import java.nio.charset.Charset
 
 
 object Method {
 	
 	val botToken = "459040479:AAEy_zLBpoDBh0B3EccUy00kHjzSGQRr99M"
-	val hostName = "https://89b706a6.ngrok.io/"
+	val hostName = "https://43adf53e.ngrok.io"
 	val baseURL = "https://api.telegram.org/bot$botToken/"
 	
 	val restTemplate = RestTemplate()
@@ -43,7 +44,7 @@ object Method {
 	
 	fun sendMessage(response: Response) {
 		val res = response.toJson()
-//		println(res)
+		println(res)
 		method("sendMessage", res)
 	}
 	
@@ -68,8 +69,9 @@ object Method {
 	fun method(name: String, requestBody: String) {
 		val headers = HttpHeaders()
 		headers.contentType = MediaType.APPLICATION_JSON
+		headers.add("charset", "utf-8")
 		
-		val entity = HttpEntity(requestBody, headers)
+		val entity = HttpEntity(requestBody.toByteArray(Charset.forName("UTF-8")), headers)
 		restTemplate.postForObject(baseURL + name, entity, String::class.java)
 	}
 	

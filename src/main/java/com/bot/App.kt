@@ -33,7 +33,7 @@ fun main(args: Array<String>) {
 	synchronized(Ctx.lock) {
 		Ctx.ctx = SpringApplication.run(App::class.java)
 	}
-	Logger.getGlobal().log(Level.INFO, "Loading complete")
+	Logger.getLogger("AppLoader").log(Level.INFO, "Loading complete")
 	Method.setupWebhook()
 	
 	do {
