@@ -83,6 +83,8 @@ open class ChatProcessor(val user: User) {
 				} else {
 					chat = BaseChats.hello(user)
 				}
+				
+				Optional.ofNullable(chat.afterWorkAction).ifPresent { it.invoke() }
 			}
 		}
 	}

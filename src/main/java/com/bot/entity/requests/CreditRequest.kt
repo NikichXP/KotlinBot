@@ -12,6 +12,7 @@ interface CreditRequest {
 	var approver: String?
 	var status: String
 	var comment: String
+	var releaseId: String
 	
 	fun getText() =
 		"""Type: ${this.type}

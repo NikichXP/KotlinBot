@@ -12,6 +12,7 @@ import com.bot.repo.CreditIncreaseRepo
 import com.bot.repo.CreditObtainRepo
 import com.bot.repo.CustomerRepo
 import com.bot.tgapi.Method
+import com.bot.util.GSheetsAPI
 import java.util.concurrent.atomic.AtomicInteger
 
 class PendingRequestsChat(val user: User) {
@@ -19,6 +20,7 @@ class PendingRequestsChat(val user: User) {
 	private val creditObtainsRepo = Ctx.get(CreditObtainRepo::class.java)
 	private val creditIncreaseRepo = Ctx.get(CreditIncreaseRepo::class.java)
 	private val customerRepo = Ctx.get(CustomerRepo::class.java)
+	private val gSheetsAPI = Ctx.get(GSheetsAPI::class.java)
 	private lateinit var requestList: MutableList<CreditRequest>
 	//	private val workingLock = ConcurrentSkipListSet<String>() // TODO Fix concurrent issues
 	private lateinit var select: CreditRequest
@@ -85,30 +87,42 @@ class PendingRequestsChat(val user: User) {
 				if (it.contains("cancel")) {
 					return@setNextChatFunction getChat()
 				} else {
+					select.releaseId = it
 					select.status = Status.APPROVED.value
+					creditIncreaseRepo.save(select as CreditIncreaseRequest)
+					gSheetsAPI.updateCellsWhere(page = "Credit limit", criteria = { it[0] == select.id }, updateFx = {
+						it[7] = select.status
+						it[9] = select.releaseId
+						return@updateCellsWhere it
+					})
 					return@setNextChatFunction BaseChats.hello(user)
 				}
 			})
-			.setOnCompleteAction {
-				// TODO Update client, and write new info to table
-			}
+		//			.setAfterWorkAction {
+		//
+		//			}
 	}
 	
 	fun approveRelease(): ChatBuilder {
-		val select_ = select as CreditObtainRequest
 		return ChatBuilder().name("pendingRequests_release")
 			.setNextChatFunction("Enter Release ID or /cancel", {
 				if (it.contains("cancel")) {
 					return@setNextChatFunction getChat()
 				} else {
-					select_.releaseID = it
-					select_.status = Status.APPROVED.value
-					creditObtainsRepo.save(select_)
+					select.releaseId = it
+					select.status = Status.APPROVED.value
+					creditObtainsRepo.save(select as CreditObtainRequest)
+					gSheetsAPI.updateCellsWhere(page = "Requests", criteria = { it[0] == select.id }, updateFx = {
+						it[6] = select.amount.toString()
+						it[8] = select.status
+						it[12] = select.releaseId
+						return@updateCellsWhere it
+					})
 					return@setNextChatFunction BaseChats.hello(user)
 				}
 			})
-			.setOnCompleteAction {
-				// TODO Update client, write data to table
-			}
+		//			.setAfterWorkAction {
+		//
+		//			}
 	}
 }

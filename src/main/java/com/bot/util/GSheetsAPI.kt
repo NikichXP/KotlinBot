@@ -1,6 +1,7 @@
 package com.bot.util
 
 import com.google.gson.Gson
+import com.google.gson.JsonParser
 import com.nikichxp.util.JsonUtil
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -49,8 +50,8 @@ class GSheetsAPI
 		}
 		
 		if (response.statusCodeValue == 200) {
-			writeToTable(sheetId, title, 1, "ID заказа", "ФИО", "Телефон", "Тип", "Размещение", "Аванс",
-				"Полная цена", "Коммент")
+			writeToTable(sheetId, title, 1, arrayOf("ID заказа", "ФИО", "Телефон", "Тип", "Размещение", "Аванс",
+				"Полная цена", "Коммент"))
 		}
 		
 		return response.statusCodeValue
@@ -82,7 +83,7 @@ class GSheetsAPI
 	 * @param row     a row of writing - 1,2,3... to write on A1..E1, A2..E2 etc. Use -1 to get first free line
 	 * @param data    all the rows
 	 */
-	fun writeToTable(sheetId: String, page: String, row: Int, vararg data: String) {
+	fun writeToTable(sheetId: String, page: String, row: Int, data: Array<String>) {
 		val row_ = if (row < 0) getFirstFreeLine(if (sheetId == "default") this.sheetId else sheetId, page) else row
 		writeToTable(if (sheetId == "default") this.sheetId else sheetId,
 			page + "!" + ROWSTART + row_ + ":" + (ROWSTART.toInt() + data.size - 1).toChar() + row_,
@@ -111,8 +112,8 @@ class GSheetsAPI
 		val entity = HttpEntity(gson.toJson(map), headers)
 		
 		val response = restTemplate.postForEntity(
-			"https://sheets.googleapis.com/v4/spreadsheets/" + id + "/values:batchUpdate" +
-				"?access_token=" + gAuthAPI.accessToken,
+			"https://sheets.googleapis.com/v4/spreadsheets/$id/values:batchUpdate" +
+				"?access_token=${gAuthAPI.accessToken}",
 			entity,
 			String::class.java)
 		
@@ -122,13 +123,37 @@ class GSheetsAPI
 		}
 	}
 	
-	fun updateWhere(criteria: () -> String, vararg data: String) {
+	@Synchronized
+	fun updateCellsWhere(sheetId: String = this.sheetId, page: String, criteria: (List<String>) -> Boolean, updateFx: (MutableList<String>) -> MutableList<String>) {
+		val resp = restTemplate.getForEntity("https://sheets.googleapis.com/v4/spreadsheets/$sheetId/values/$page" +
+			"?access_token=${gAuthAPI.accessToken}", String::class.java)
+		val arrays = JsonParser().parse(resp.body).asJsonObject.getAsJsonArray("values").map {
+			it.asJsonArray.map { it.asString }
+		}
+		
+		arrays.forEach { it.forEach { print(it + "\t") }; println("") }
+		
+		(0 until arrays.size).filter {
+			criteria.invoke(arrays[it])
+		}.stream().peek { println("NOT NULL") }
+			.forEach {
+//				clearData(sheetId, "$page!A${it + 1}:Z${it + 1}")
+				writeToTable(sheetId = sheetId, page = page, row = it + 1, data = updateFx.invoke(arrays[it].toMutableList()).toTypedArray())
+			}
+	}
 	
+	@Synchronized
+	fun clearData(sheetId: String, range: String) {
+		val response = restTemplate.postForEntity(
+			"https://sheets.googleapis.com/v4/spreadsheets/$sheetId/values/$range:clear" +
+				"?access_token=${gAuthAPI.accessToken}",
+			"{}",
+			String::class.java)
 	}
 	
 	fun checkIfTableExist(sheetId: String, pageTextId: String): Boolean {
 		val response = restTemplate.getForEntity(
-			"https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "?access_token=" + gAuthAPI.accessToken,
+			"https://sheets.googleapis.com/v4/spreadsheets/$sheetId?access_token=" + gAuthAPI.accessToken,
 			String::class.java)
 		
 		if (debug) {
