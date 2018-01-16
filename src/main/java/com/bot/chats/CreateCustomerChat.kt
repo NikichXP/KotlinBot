@@ -25,9 +25,9 @@ class CreateCustomerChat(val user: User) {
 		})
 		.setEachStepFunction { async { customerRepo.save(customer) } }
 		.setOnCompleteAction {
-			sheetsAPI.writeToTable("default", "CustomerRequests", -1,
+			sheetsAPI.writeToTable("default", "CustomerRequests", -1, arrayOf(
 				LocalDate.now().toString(), customer.id, customer.fullName, customer.address, customer.agent,
-				customer.contactData ?: "", customer.info ?: "")
+				customer.contactData ?: "", customer.info ?: ""))
 		}
 		.setNextChatFunction(Response("Creation complete. Continue home or create request",
 			arrayOf("Home", "Request")),

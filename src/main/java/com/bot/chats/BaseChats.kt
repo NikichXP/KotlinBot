@@ -42,7 +42,7 @@ object BaseChats {
 			.setOnCompleteAction {
 				gSheetsAPI.writeToTable(gSheetsAPI.sheetId,
 					"Test", gSheetsAPI.getFirstFreeLine(gSheetsAPI.sheetId, "Test"),
-					"A", "B", "C", "D")
+					arrayOf("A", "B", "C", "D"))
 			}
 	
 	fun chat2(user: User): ChatBuilder =
