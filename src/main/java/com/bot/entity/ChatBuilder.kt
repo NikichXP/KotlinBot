@@ -17,23 +17,13 @@ class ChatBuilder(val userid: String? = null) {
 	val errorHandler: Pair<(Exception) -> Boolean, (String) -> ChatBuilder> = Pair({ e -> true },
 		{ string -> this.nextChatDeterminer!!.invoke(string) })
 	
-	fun then(text: String, action: (String) -> Unit //,
-		//	         errorHandler: (Exception) -> Boolean = { false }, errorMessage: String = "Unexpected error",
-		//	         postFixHandler: () -> ChatDialog =
-		//	         { throw IllegalStateException("Unexpected error") }
-	): ChatBuilder {
+	fun then(text: String, action: (String) -> Unit): ChatBuilder {
 		actions.add(Pair(Response(userid, text), action))
-		//		errorHandler.add(Triple(isErrorFunction, errorMessage, postFixHandler))
 		return this
 	}
 	
-	fun then(response: Response, action: (String) -> Unit //,
-		//	         isErrorFunction: () -> Boolean = { false }, errorMessage: String = "Unexpected error",
-		//	         postFixHandler: () -> ChatDialog =
-		//	         { throw IllegalStateException("Unexpected error") }
-	): ChatBuilder {
+	fun then(response: Response, action: (String) -> Unit): ChatBuilder {
 		actions.add(Pair(response, action))
-		//		errorHandler.add(Triple(isErrorFunction, errorMessage, postFixHandler))
 		return this
 	}
 	

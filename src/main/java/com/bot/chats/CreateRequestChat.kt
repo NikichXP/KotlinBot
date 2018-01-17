@@ -67,17 +67,17 @@ class CreateRequestChat(val user: User) {
 	
 	fun getAction() = ChatBuilder().name("createRequest_selectAction")
 		.setNextChatFunction(Response(user.id, "1 to create credit widthdraw, 2 for credit limit increase")
-			.withInlineKeyboard(arrayOf("Credit widthdraw", "Limit increase", "Cancel")),
+			.withInlineKeyboard(arrayOf("Credit release", "Limit increase", "Cancel")),
 			{
 				return@setNextChatFunction when {
-					it.contains("1")         -> getCreditWidthDrawChat()
-					it == "Credit widthdraw" -> getCreditWidthDrawChat()
+					it.contains("1")         -> getCreditReleaseChat()
+					it == "Credit widthdraw" -> getCreditReleaseChat()
 					it == "Cancel"           -> BaseChats.hello(user)
 					else                     -> getCreditLimitIncreaseChat()
 				}
 			})
 	
-	private fun getCreditWidthDrawChat() = ChatBuilder().name("createRequest_widthdraw")
+	private fun getCreditReleaseChat() = ChatBuilder().name("createRequest_release")
 		.beforeExecution { creditObtainRequest = CreditObtainRequest(creator = user.id, customer = customer!!) }
 		.then("Enter load amount", {
 			creditObtainRequest.amount = it.toDouble()
@@ -104,10 +104,12 @@ class CreateRequestChat(val user: User) {
 				}
 			}
 		})
-		.then("BSO or other type?", {
-			creditObtainRequest.bso = it.contains("bso", true)
+		.then(Response("BCO or carrier?").withCustomKeyboard(arrayOf("BCO", "Carrier")), {
+			creditObtainRequest.bсo = it.contains("bco", true)
 		})
+		.then("Enter cargo ID (FB)", { creditObtainRequest.fb = it })
 		.then("Add a comment", { creditObtainRequest.comment = it })
+		.setOnCompleteMessage(Response { "Your request #${creditObtainRequest.id} was written to DB. Thanks." })
 		.setOnCompleteAction {
 			creditObtainsRepo.save(creditObtainRequest)
 			sheetsAPI.writeToTable("default", "Requests", -1,
@@ -117,7 +119,7 @@ class CreateRequestChat(val user: User) {
 					user.username + "/" + user.id,
 					customer!!.fullName,
 					customer!!.id, //customer.id	новое поле fb	select.amount	String	select.status.value	пустое поле
-					"TODO FB", // TODO FB
+					creditObtainRequest.fb,
 					creditObtainRequest.amount.toString(),
 					creditObtainRequest.type,
 					creditObtainRequest.status,
@@ -130,32 +132,43 @@ class CreateRequestChat(val user: User) {
 			)
 		}
 	
-	
 	private fun getCreditLimitIncreaseChat() = ChatBuilder().name("createRequest_increase")
 		.beforeExecution { creditIncreaseRequest = CreditIncreaseRequest(creator = user.id, customer = customer!!) }
 		.then("Enter amount, $", { creditIncreaseRequest.amount = it.toDouble() })
 		.then("Add a comment", { creditIncreaseRequest.comment = it })
 		.setOnCompleteAction {
-			creditIncreaseRepo.save(creditIncreaseRequest)
-			sheetsAPI.writeToTable("default", "Credit limit", -1,
-				arrayOf(creditIncreaseRequest.id,
-					LocalDate.now().toString(),
-					user.username + "/" + user.id,
-					customer!!.fullName,
-					customer!!.id,
-					"",
-					creditIncreaseRequest.type,
-					creditIncreaseRequest.status,
-					"",
-					"TODO documents",
-					creditIncreaseRequest.comment,
-					customer!!.info ?: "No info",
-					"$0",
-					creditIncreaseRequest.amount.toString(),
-					customer!!.creditLimit.toString()
-				)
-			)
+			createLimitEntry(customer!!, creditIncreaseRequest)
 		}
+	
+	fun createLimitEntry(customer: Customer, comment: String, amount: Double): CreditIncreaseRequest {
+		val creditIncreaseRequest = CreditIncreaseRequest(creator = user.id, customer = customer)
+		creditIncreaseRequest.amount = amount
+		creditIncreaseRequest.comment = comment
+		return createLimitEntry(customer, creditIncreaseRequest)
+	}
+	
+	private fun createLimitEntry(customer: Customer, creditIncreaseRequest: CreditIncreaseRequest): CreditIncreaseRequest {
+		creditIncreaseRepo.save(creditIncreaseRequest)
+		sheetsAPI.writeToTable("default", "Credit limit", -1,
+			arrayOf(creditIncreaseRequest.id,
+				LocalDate.now().toString(),
+				user.username + "/" + user.id,
+				customer.fullName,
+				customer.id,
+				"",
+				creditIncreaseRequest.type,
+				creditIncreaseRequest.status,
+				"",
+				"TODO documents",
+				creditIncreaseRequest.comment,
+				customer.info ?: "No info",
+				"$0",
+				creditIncreaseRequest.amount.toString(),
+				customer.creditLimit.toString()
+			)
+		)
+		return creditIncreaseRequest
+	}
 }
 
 /*
