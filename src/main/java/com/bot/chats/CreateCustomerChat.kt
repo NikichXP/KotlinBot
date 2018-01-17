@@ -13,23 +13,43 @@ class CreateCustomerChat(val user: User) {
 	
 	private val customerRepo = Ctx.get(CustomerRepo::class.java)
 	private val sheetsAPI = Ctx.get(GSheetsAPI::class.java)
-	private lateinit var customer: Customer
+	private var customer: Customer = Customer(fullName = "", agent = user.id)
 	
 	fun getChat() = ChatBuilder(user.id).name("createCustomer_intro")
-		.setNextChatFunction(Response("Create user or import existing?")
-			.withCustomKeyboard(arrayOf("Create user", "Import user")),
+		.setNextChatFunction(
+			Response(user.id, "Create user or import existing?")
+				.withCustomKeyboard(arrayOf("Create user", "Import user")),
 			{
 				return@setNextChatFunction if (it == "Create user") {
 					createUser()
 				} else {
-					ChatBuilder()
+					importUser()
 				}
 			}
 		)
 	
+	private fun importUser(): ChatBuilder {
+		return ChatBuilder(user.id).name("createCustomer_import")
+			.then("Enter customer name", { customer = Customer(fullName = it, agent = user.id) })
+			.then("Enter customer ID", { customer.id = it })
+			.then("Enter address or /skip this step", { if (it != "/skip") customer.address = it })
+			.then("Enter contact info", { customer.info = it })
+			.setOnCompleteAction { customerRepo.save(customer) }
+			.setOnCompleteMessage("Customer ${customer.fullName} with ID ${customer.id} created")
+			.setNextChatFunction(Response("Creation complete. Your user id is: ${customer.id}.\n" +
+				"Continue home or create another request",
+				arrayOf("Home", "Request")),
+				{
+					return@setNextChatFunction when (it) {
+						"Request" -> CreateRequestChat(user, customer).getAction()
+						else      -> BaseChats.hello(user)
+					}
+				})
+	}
+	
 	private fun createUser(): ChatBuilder {
 		var limit = 0.0
-		return ChatBuilder(user.id).name("createCustomerChat")
+		return ChatBuilder(user.id).name("createCustomer_new")
 			.then(Response { "Enter client name" }, {
 				customer = Customer(fullName = it, agent = user.id)
 			})
