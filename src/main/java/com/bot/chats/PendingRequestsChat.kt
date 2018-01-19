@@ -27,7 +27,7 @@ class PendingRequestsChat(val user: User) {
 	
 	fun getChat(): ChatBuilder {
 		val int = AtomicInteger(0)
-		return ChatBuilder().name("pendingRequests_home")
+		return ChatBuilder(user).name("pendingRequests_home")
 			.then(Response {
 				requestList = mutableListOf()
 				requestList.addAll(creditObtainsRepo.findByStatus(Status.PENDING.value))
@@ -38,7 +38,7 @@ class PendingRequestsChat(val user: User) {
 				}
 					.reduce { a, b -> "$a\n$b" }.orElse("Nothing found")
 			}, {
-				select = requestList[it.substring(1).toInt() - 1]
+				select = requestList[it.replace("/", "").toInt() - 1]
 			})
 			.setNextChatFunction(Response {
 				select.getText() + """
@@ -81,7 +81,7 @@ class PendingRequestsChat(val user: User) {
 	
 	fun approveCreditLimit(): ChatBuilder {
 		val oldAmount = select.amount
-		return ChatBuilder().name("pendingRequests_approveCreditLimit")
+		return ChatBuilder(user).name("pendingRequests_approveCreditLimit")
 			.then("Enter amount", { select.amount = it.toDouble() })
 			.setNextChatFunction("Enter Release ID or /cancel", {
 				if (it.contains("cancel")) {
@@ -104,7 +104,7 @@ class PendingRequestsChat(val user: User) {
 	}
 	
 	fun approveRelease(): ChatBuilder {
-		return ChatBuilder().name("pendingRequests_release")
+		return ChatBuilder(user).name("pendingRequests_release")
 			.setNextChatFunction("Enter Release ID or /cancel", {
 				if (it.contains("cancel")) {
 					return@setNextChatFunction getChat()

@@ -35,7 +35,7 @@ open class ChatProcessor(val user: User) {
 			Optional.of(chat).ifPresent {
 				Optional.ofNullable(chat.beforeExecution).ifPresent { it.invoke() }
 				try {
-									Method.sendMessage(user.id, "Started chat: ${chat.name}")
+					//Method.sendMessage(user.id, "Started chat: ${chat.name}")
 					chat.actions.forEach {
 						sendMessage(it.first)
 						lock.acquire()

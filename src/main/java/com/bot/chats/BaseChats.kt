@@ -20,7 +20,7 @@ object BaseChats {
 	}
 	
 	fun hello(user: User): ChatBuilder =
-		ChatBuilder().name("hello")
+		ChatBuilder(user).name("hello")
 			.setNextChatFunction(Response(null)
 				.withViewData(TextResolver.getStateText(State.HELLO))
 				.withCustomKeyboard(TextResolver.mainMenu), {
@@ -38,7 +38,7 @@ object BaseChats {
 			})
 	
 	fun test(user: User): ChatBuilder =
-		ChatBuilder()
+		ChatBuilder(user)
 			.setOnCompleteAction {
 				gSheetsAPI.writeToTable(gSheetsAPI.sheetId,
 					"Test", gSheetsAPI.getFirstFreeLine(gSheetsAPI.sheetId, "Test"),
@@ -46,7 +46,7 @@ object BaseChats {
 			}
 	
 	fun chat2(user: User): ChatBuilder =
-		ChatBuilder()
+		ChatBuilder(user)
 			.then(Response(null).withText("text2-1")
 				.withCustomKeyboard(arrayOf<String>()), { println(it) })
 			.then("text2-2", { println(it) })
@@ -62,7 +62,7 @@ object BaseChats {
 			})
 	
 	fun chat3(user: User): ChatBuilder =
-		ChatBuilder()
+		ChatBuilder(user)
 			.then("text3-1", { println(it) })
 			.then("text3-2", { println(it) })
 			.then("text3-3", { println(it) })

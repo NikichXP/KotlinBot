@@ -15,7 +15,7 @@ class CreateCustomerChat(val user: User) {
 	private val sheetsAPI = Ctx.get(GSheetsAPI::class.java)
 	private var customer: Customer = Customer(fullName = "", agent = user.id)
 	
-	fun getChat() = ChatBuilder(user.id).name("createCustomer_intro")
+	fun getChat() = ChatBuilder(user).name("createCustomer_intro")
 		.setNextChatFunction(
 			Response(user.id, "Create user or import existing?")
 				.withCustomKeyboard(arrayOf("Create user", "Import user")),
@@ -29,9 +29,10 @@ class CreateCustomerChat(val user: User) {
 		)
 	
 	private fun importUser(): ChatBuilder {
-		return ChatBuilder(user.id).name("createCustomer_import")
-			.then("Enter customer name", { customer = Customer(fullName = it, agent = user.id) })
-			.then("Enter customer ID", { customer.id = it })
+		var fullname: String = ""
+		return ChatBuilder(user).name("createCustomer_import")
+			.then("Enter customer name", { fullname = it })
+			.then("Enter customer ID", { customer = Customer(id = it, fullName = fullname, agent = user.id) })
 			.then("Enter address or /skip this step", { if (it != "/skip") customer.address = it })
 			.then("Enter contact info", { customer.info = it })
 			.setOnCompleteAction { customerRepo.save(customer) }
@@ -49,7 +50,7 @@ class CreateCustomerChat(val user: User) {
 	
 	private fun createUser(): ChatBuilder {
 		var limit = 0.0
-		return ChatBuilder(user.id).name("createCustomer_new")
+		return ChatBuilder(user).name("createCustomer_new")
 			.then(Response { "Enter client name" }, {
 				customer = Customer(fullName = it, agent = user.id)
 			})

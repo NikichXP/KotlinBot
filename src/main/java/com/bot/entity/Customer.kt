@@ -20,6 +20,10 @@ class Customer(@Id var id: String = UUID.randomUUID().toString().replace("-", ""
                var contactData: String? = null
 ) {
 	
+	constructor(id: String, fullName: String, agent: String) : this(fullName = fullName, agent = agent) {
+		this.id = id
+	}
+	
 	var fullName: String = ""
 		set(name) {
 			field = name

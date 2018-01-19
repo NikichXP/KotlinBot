@@ -30,7 +30,7 @@ class CreateRequestChat(val user: User) {
 	}
 	
 	fun getChat(): ChatBuilder {
-		return ChatBuilder().name("createRequest_home")
+		return ChatBuilder(user).name("createRequest_home")
 			.setNextChatFunction("Enter client name or ID", {
 				customerList = customerRepo.findByFullNameLowerCaseLike(it.toLowerCase())
 				customerRepo.findById(it).ifPresent { customerList.add(it) }
@@ -38,7 +38,7 @@ class CreateRequestChat(val user: User) {
 			})
 	}
 	
-	fun chooseClient(): ChatBuilder = ChatBuilder().name("createRequest_selectClient")
+	fun chooseClient(): ChatBuilder = ChatBuilder(user).name("createRequest_selectClient")
 		.setNextChatFunction(Response {
 			val num = AtomicInteger(0)
 			
@@ -48,7 +48,7 @@ class CreateRequestChat(val user: User) {
 		}, {
 			if (it.startsWith("/")) {
 				try {
-					customer = customerList[it.substring(1).toInt()]
+					customer = customerList[it.replace("/", "").toInt()]
 				} catch (e: Exception) {
 					return@setNextChatFunction when (it) {
 						"/cancel" -> BaseChats.hello(user)
@@ -65,7 +65,7 @@ class CreateRequestChat(val user: User) {
 		})
 	
 	
-	fun getAction() = ChatBuilder().name("createRequest_selectAction")
+	fun getAction() = ChatBuilder(user).name("createRequest_selectAction")
 		.setNextChatFunction(Response(user.id, "1 to create credit widthdraw, 2 for credit limit increase")
 			.withInlineKeyboard(arrayOf("Credit release", "Limit increase", "Cancel")),
 			{
@@ -77,7 +77,7 @@ class CreateRequestChat(val user: User) {
 				}
 			})
 	
-	private fun getCreditReleaseChat() = ChatBuilder().name("createRequest_release")
+	private fun getCreditReleaseChat() = ChatBuilder(user).name("createRequest_release")
 		.beforeExecution { creditObtainRequest = CreditObtainRequest(creator = user.id, customer = customer!!) }
 		.then("Enter load amount", {
 			creditObtainRequest.amount = it.toDouble()
@@ -132,7 +132,7 @@ class CreateRequestChat(val user: User) {
 			)
 		}
 	
-	private fun getCreditLimitIncreaseChat() = ChatBuilder().name("createRequest_increase")
+	private fun getCreditLimitIncreaseChat() = ChatBuilder(user).name("createRequest_increase")
 		.beforeExecution { creditIncreaseRequest = CreditIncreaseRequest(creator = user.id, customer = customer!!) }
 		.then("Enter amount, $", { creditIncreaseRequest.amount = it.toDouble() })
 		.then("Add a comment", { creditIncreaseRequest.comment = it })

@@ -19,7 +19,7 @@ class MyRequestsChat(val user: User) {
 	
 	fun getChat(): ChatBuilder {
 		val int = AtomicInteger(0)
-		return ChatBuilder().name("myRequests_home")
+		return ChatBuilder(user).name("myRequests_home")
 			.setNextChatFunction(Response {
 				requestList = mutableListOf()
 				requestList.addAll(creditObtainsRepo.findByCreator(user.id))
@@ -49,7 +49,7 @@ class MyRequestsChat(val user: User) {
 	}
 	
 	fun modifyRequest(): ChatBuilder {
-		return ChatBuilder().name("myRequests_modifyRequest")
+		return ChatBuilder(user).name("myRequests_modifyRequest")
 			.setNextChatFunction(Response {
 				select.getText() + "\n\n /back to all orders\n/home to main menu\n" +
 					"/decline request (you can decline approved)"

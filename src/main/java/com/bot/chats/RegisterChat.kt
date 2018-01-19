@@ -8,7 +8,7 @@ class RegisterChat(var user: User) {
 	
 	val userRepo = Ctx.get(UserRepo::class.java)
 	
-	fun getChat(): ChatBuilder = ChatBuilder().name("register_name")
+	fun getChat(): ChatBuilder = ChatBuilder(user).name("register_name")
 		.setNextChatFunction("Enter your full name", {
 			if (it.split(" ").size < 2) {
 				return@setNextChatFunction getChat()
@@ -19,7 +19,7 @@ class RegisterChat(var user: User) {
 			}
 		})
 	
-	fun getMail(): ChatBuilder = ChatBuilder().name("register_mail")
+	fun getMail(): ChatBuilder = ChatBuilder(user).name("register_mail")
 		.setNextChatFunction("Enter email", {
 			if (!it.contains("@")) {
 				return@setNextChatFunction getMail()
@@ -30,7 +30,7 @@ class RegisterChat(var user: User) {
 			}
 		})
 	
-	fun getApprove(): ChatBuilder = ChatBuilder().name("register_check")
+	fun getApprove(): ChatBuilder = ChatBuilder(user).name("register_check")
 		.setNextChatFunction("Wait for admin to approve you", {
 			user = userRepo.findById(user.id).get()
 			

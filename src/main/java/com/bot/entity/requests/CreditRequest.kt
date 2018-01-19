@@ -1,6 +1,8 @@
 package com.bot.entity.requests
 
+import com.bot.Ctx
 import com.bot.entity.Customer
+import com.bot.repo.UserRepo
 
 interface CreditRequest {
 	
@@ -17,14 +19,15 @@ interface CreditRequest {
 	fun getText() =
 		"""Type: ${this.type}
 		
-		Customer:
-		Full name: ${this.customer.fullName}
-		Created by agent (id): ${this.customer.agent}
+		Customer: ${this.customer.fullName}
+		Created by agent (id): ${this.customer.agent} // ${Ctx.get(UserRepo::class.java)
+			.findById(this.customer.agent).map { it.fullName }.orElse("Who is it?")}
 		Current credit limit: ${this.customer.creditLimit}
 		Address: ${this.customer.address}
 		Info: ${this.customer.info}
 		Amount: ${this.amount}
-		Creator: ${this.creator}
+		Creator: ${this.creator} // ${Ctx.get(UserRepo::class.java)
+			.findById(this.creator).map { it.fullName }.orElse("Who is it?")}
 		Status: ${this.status}
 		""".trimMargin()
 }

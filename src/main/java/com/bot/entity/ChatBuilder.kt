@@ -3,7 +3,7 @@ package com.bot.entity
 import com.bot.chats.BaseChats
 import java.util.LinkedList
 
-class ChatBuilder(val user: User? = null) {
+class ChatBuilder(val user: User) {
 	
 	val actions = LinkedList<Pair<Response, (String) -> Unit>>()
 	var beforeExecution: (() -> Unit)? = null

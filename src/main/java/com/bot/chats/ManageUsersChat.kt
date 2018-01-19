@@ -22,7 +22,7 @@ class ManageUsersChat(val user: User) {
 	}
 	
 	fun getChat(): ChatBuilder {
-		return ChatBuilder().name("manageUsers.select")
+		return ChatBuilder(user).name("manageUsers.select")
 			.setNextChatFunction(Response { "Choose action:\n/all users\nOr enter name (or part) to find user" }, {
 				if (it == "/all") {
 					return@setNextChatFunction allUsersList(0)
@@ -35,7 +35,7 @@ class ManageUsersChat(val user: User) {
 	fun allUsersList(skip: Int): ChatBuilder {
 		userList = userRepo.findAll()
 		val userSubList = userList.drop(skip).take(10)
-		return ChatBuilder()
+		return ChatBuilder(user)
 			.setNextChatFunction(Response {
 				getTextByUsers(userSubList, skip)
 			}, {
@@ -60,7 +60,7 @@ class ManageUsersChat(val user: User) {
 		val users = userRepo.findAll().stream()
 			.filter { it.fullName?.contains(string, true) ?: false }
 			.skip(skip.toLong()).limit(10).toList()
-		return ChatBuilder().setNextChatFunction({ getTextByUsers(users, skip) }, {
+		return ChatBuilder(user).setNextChatFunction({ getTextByUsers(users, skip) }, {
 			if (it.isSelection()) {
 				return@setNextChatFunction userSelection(users[it.selection()!! - 1])
 			}
@@ -69,7 +69,7 @@ class ManageUsersChat(val user: User) {
 	}
 	
 	fun userSelection(user: User): ChatBuilder {
-		return ChatBuilder().name("manageUser.selected")
+		return ChatBuilder(user).name("manageUser.selected")
 			.setNextChatFunction(Response {
 				"""
 				User ${user.fullName}
