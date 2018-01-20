@@ -21,7 +21,7 @@ object BaseChats {
 	
 	fun hello(user: User): ChatBuilder =
 		ChatBuilder(user).name("hello")
-			.setNextChatFunction(Response(null)
+			.setNextChatFunction(Response(user)
 				.withViewData(TextResolver.getStateText(State.HELLO))
 				.withCustomKeyboard(TextResolver.mainMenu), {
 				return@setNextChatFunction when (it) {
@@ -47,7 +47,7 @@ object BaseChats {
 	
 	fun chat2(user: User): ChatBuilder =
 		ChatBuilder(user)
-			.then(Response(null).withText("text2-1")
+			.then(Response(user).withText("text2-1")
 				.withCustomKeyboard(arrayOf<String>()), { println(it) })
 			.then("text2-2", { println(it) })
 			.then("text2-3", { println(it) })

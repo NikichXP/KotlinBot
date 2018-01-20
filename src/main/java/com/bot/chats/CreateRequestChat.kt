@@ -9,6 +9,7 @@ import com.bot.entity.requests.CreditIncreaseRequest
 import com.bot.entity.requests.CreditObtainRequest
 import com.bot.repo.CreditIncreaseRepo
 import com.bot.util.GSheetsAPI
+import java.text.DecimalFormat
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
@@ -67,13 +68,12 @@ class CreateRequestChat(val user: User) {
 	
 	fun getAction() = ChatBuilder(user).name("createRequest_selectAction")
 		.setNextChatFunction(Response(user.id, "1 to create credit widthdraw, 2 for credit limit increase")
-			.withInlineKeyboard(arrayOf("Credit release", "Limit increase", "Cancel")),
+			.withCustomKeyboard(arrayOf("Credit release", "Limit increase", "Cancel")),
 			{
 				return@setNextChatFunction when {
-					it.contains("1")         -> getCreditReleaseChat()
-					it == "Credit widthdraw" -> getCreditReleaseChat()
-					it == "Cancel"           -> BaseChats.hello(user)
-					else                     -> getCreditLimitIncreaseChat()
+					it == "Credit release" -> getCreditReleaseChat()
+					it == "Cancel"         -> BaseChats.hello(user)
+					else                   -> getCreditLimitIncreaseChat()
 				}
 			})
 	
@@ -104,15 +104,15 @@ class CreateRequestChat(val user: User) {
 				}
 			}
 		})
-		.then(Response("BCO or carrier?").withCustomKeyboard(arrayOf("BCO", "Carrier")), {
-			creditObtainRequest.bсo = it.contains("bco", true)
+		.then(Response(user.id, "BCO or carrier?").withCustomKeyboard(arrayOf("BCO", "Carrier")), {
+			creditObtainRequest.bco = it.contains("bco", true)
 		})
 		.then("Enter cargo ID (FB)", { creditObtainRequest.fb = it })
 		.then("Add a comment", { creditObtainRequest.comment = it })
 		.setOnCompleteMessage(Response { "Your request #${creditObtainRequest.id} was written to DB. Thanks." })
 		.setOnCompleteAction {
 			creditObtainsRepo.save(creditObtainRequest)
-			sheetsAPI.writeToTable("default", "Requests", -1,
+			sheetsAPI.writeToTable("default", creditObtainRequest.type, -1,
 				arrayOf(
 					creditObtainRequest.id,
 					LocalDate.now().toString(), //request.id	LocalDate.now()	user.name	customer.name
@@ -120,7 +120,7 @@ class CreateRequestChat(val user: User) {
 					customer!!.fullName,
 					customer!!.id, //customer.id	новое поле fb	select.amount	String	select.status.value	пустое поле
 					creditObtainRequest.fb,
-					creditObtainRequest.amount.toString(),
+					DecimalFormat("#,###.##").format(creditObtainRequest.amount),
 					creditObtainRequest.type,
 					creditObtainRequest.status,
 					"",
@@ -140,16 +140,17 @@ class CreateRequestChat(val user: User) {
 			createLimitEntry(customer!!, creditIncreaseRequest)
 		}
 	
-	fun createLimitEntry(customer: Customer, comment: String, amount: Double): CreditIncreaseRequest {
+	fun createLimitEntry(customer: Customer, type: String, comment: String, amount: Double): CreditIncreaseRequest {
 		val creditIncreaseRequest = CreditIncreaseRequest(creator = user.id, customer = customer)
 		creditIncreaseRequest.amount = amount
 		creditIncreaseRequest.comment = comment
+		creditIncreaseRequest.type = type
 		return createLimitEntry(customer, creditIncreaseRequest)
 	}
 	
 	private fun createLimitEntry(customer: Customer, creditIncreaseRequest: CreditIncreaseRequest): CreditIncreaseRequest {
 		creditIncreaseRepo.save(creditIncreaseRequest)
-		sheetsAPI.writeToTable("default", "Credit limit", -1,
+		sheetsAPI.writeToTable("default", creditIncreaseRequest.type, -1,
 			arrayOf(creditIncreaseRequest.id,
 				LocalDate.now().toString(),
 				user.username + "/" + user.id,
@@ -163,7 +164,7 @@ class CreateRequestChat(val user: User) {
 				creditIncreaseRequest.comment,
 				customer.info ?: "No info",
 				"$0",
-				creditIncreaseRequest.amount.toString(),
+				DecimalFormat("#,###.##").format(creditIncreaseRequest.amount),
 				customer.creditLimit.toString()
 			)
 		)

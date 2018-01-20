@@ -16,7 +16,7 @@ class Response(var chat_id: String?, text: String) {
 	
 	constructor(user: User, text: String) : this(user.id, text)
 	constructor(user: User) : this(user.id, "")
-	constructor(chat_id: String?) : this(chat_id, "")
+//	constructor(chat_id: String?) : this(chat_id, "")
 	constructor(text: String, keys: Array<String>) : this(null, text) {
 		withCustomKeyboard(keys)
 	}

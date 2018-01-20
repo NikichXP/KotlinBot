@@ -13,6 +13,7 @@ import com.bot.repo.CreditObtainRepo
 import com.bot.repo.CustomerRepo
 import com.bot.tgapi.Method
 import com.bot.util.GSheetsAPI
+import java.text.DecimalFormat
 import java.util.concurrent.atomic.AtomicInteger
 
 class PendingRequestsChat(val user: User) {
@@ -34,7 +35,7 @@ class PendingRequestsChat(val user: User) {
 				requestList.addAll(creditIncreaseRepo.findByStatus(Status.PENDING.value))
 				requestList.stream().map {
 					"/${int.incrementAndGet()} -- ${it.customer.fullName} ::" +
-						" ${it.type} :: ${it.amount}"
+						" ${it.type} :: ${DecimalFormat("#,###.##").format(it.amount)}"
 				}
 					.reduce { a, b -> "$a\n$b" }.orElse("Nothing found")
 			}, {
@@ -82,28 +83,30 @@ class PendingRequestsChat(val user: User) {
 	fun approveCreditLimit(): ChatBuilder {
 		val oldAmount = select.amount
 		return ChatBuilder(user).name("pendingRequests_approveCreditLimit")
-			.then("Enter amount", { select.amount = it.toDouble() })
-			.setNextChatFunction("Enter Release ID or /cancel", {
+			.setNextChatFunction("Enter amount or /cancel", {
 				if (it.contains("cancel")) {
 					return@setNextChatFunction getChat()
 				} else {
-					select.releaseId = it
+					select.amount = it.toDouble()
 					select.status = Status.APPROVED.value
 					creditIncreaseRepo.save(select as CreditIncreaseRequest)
-					gSheetsAPI.updateCellsWhere(page = "Credit limit", criteria = { it[0] == select.id }, updateFx = {
+					gSheetsAPI.updateCellsWhere(page = select.type, criteria = { it[0] == select.id }, updateFx = {
 						it[7] = select.status
-						it[9] = select.releaseId
+						it[12] = "$" + DecimalFormat("#,###.##").format(select.amount - select.customer.creditLimit)
+						it[13] = "$" + DecimalFormat("#,###.##").format(oldAmount)
+						it[14] = "$" + DecimalFormat("#,###.##").format(select.amount)
 						return@updateCellsWhere it
 					})
+					val customer = select.customer
+					customer.creditLimit = select.amount // TODO Migrate from here
+					customerRepo.save(customer)
 					return@setNextChatFunction BaseChats.hello(user)
 				}
 			})
-		//			.setAfterWorkAction {
-		//
-		//			}
 	}
 	
 	fun approveRelease(): ChatBuilder {
+		val select = this.select as CreditObtainRequest
 		return ChatBuilder(user).name("pendingRequests_release")
 			.setNextChatFunction("Enter Release ID or /cancel", {
 				if (it.contains("cancel")) {
@@ -111,9 +114,9 @@ class PendingRequestsChat(val user: User) {
 				} else {
 					select.releaseId = it
 					select.status = Status.APPROVED.value
-					creditObtainsRepo.save(select as CreditObtainRequest)
+					creditObtainsRepo.save(select)
 					gSheetsAPI.updateCellsWhere(page = "Requests", criteria = { it[0] == select.id }, updateFx = {
-						it[6] = select.amount.toString()
+						it[6] = DecimalFormat("#,###.##").format(select.amount)
 						it[8] = select.status
 						it[12] = select.releaseId
 						return@updateCellsWhere it
@@ -121,8 +124,5 @@ class PendingRequestsChat(val user: User) {
 					return@setNextChatFunction BaseChats.hello(user)
 				}
 			})
-		//			.setAfterWorkAction {
-		//
-		//			}
 	}
 }

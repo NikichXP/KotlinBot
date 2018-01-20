@@ -69,7 +69,7 @@ class ChatBuilder(val user: User) {
 	}
 	
 	fun setOnCompleteMessage(message: String): ChatBuilder {
-		this.onCompleteMessage = Response(message)
+		this.onCompleteMessage = Response(user, message)
 		return this
 	}
 	

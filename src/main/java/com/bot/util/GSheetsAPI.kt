@@ -91,7 +91,7 @@ class GSheetsAPI
 	}
 	
 	@Synchronized
-	fun writeToTable(id: String, range: String, data: Array<Array<String>>) {
+	fun writeToTable(id: String, range: String, data: Array<Array<String>>, retry: Boolean = false) {
 		val arrays = arrayOfNulls<Json.JsonArr>(data.size)
 		for (i in arrays.indices) {
 			arrays[i] = Json.JsonArr(data[i])
@@ -118,8 +118,17 @@ class GSheetsAPI
 			String::class.java)
 		
 		if (response.statusCodeValue != 200) {
+			if (retry) {
+				throw IllegalArgumentException()
+			}
 			println("WARNING! Error writing to sheet " + id + " data: " + Arrays.toString(data))
 			println(response)
+			try {
+				createPage(sheetId, range.split(Regex("!"))[0])
+				writeToTable(id, range, data, true)
+			} catch (e: IllegalArgumentException) {
+				println("And this won't be fixed by rename")
+			}
 		}
 	}
 	
@@ -137,7 +146,7 @@ class GSheetsAPI
 			criteria.invoke(arrays[it])
 		}.stream().peek { println("NOT NULL") }
 			.forEach {
-//				clearData(sheetId, "$page!A${it + 1}:Z${it + 1}")
+				//				clearData(sheetId, "$page!A${it + 1}:Z${it + 1}")
 				writeToTable(sheetId = sheetId, page = page, row = it + 1, data = updateFx.invoke(arrays[it].toMutableList()).toTypedArray())
 			}
 	}

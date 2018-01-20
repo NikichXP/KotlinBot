@@ -3,6 +3,7 @@ package com.bot.entity.requests
 import com.bot.Ctx
 import com.bot.entity.Customer
 import com.bot.repo.UserRepo
+import java.text.DecimalFormat
 
 interface CreditRequest {
 	
@@ -14,7 +15,6 @@ interface CreditRequest {
 	var approver: String?
 	var status: String
 	var comment: String
-	var releaseId: String
 	
 	fun getText() =
 		"""Type: ${this.type}
@@ -25,7 +25,7 @@ interface CreditRequest {
 		Current credit limit: ${this.customer.creditLimit}
 		Address: ${this.customer.address}
 		Info: ${this.customer.info}
-		Amount: ${this.amount}
+		Amount: ${DecimalFormat("#,###.##").format(this.amount)}
 		Creator: ${this.creator} // ${Ctx.get(UserRepo::class.java)
 			.findById(this.creator).map { it.fullName }.orElse("Who is it?")}
 		Status: ${this.status}

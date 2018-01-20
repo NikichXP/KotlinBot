@@ -78,7 +78,7 @@ class CreateCustomerChat(val user: User) {
 				}
 				if (limit > 0) {
 					launch {
-						val result = CreateRequestChat(user).createLimitEntry(customer, "Created user", limit)
+						val result = CreateRequestChat(user).createLimitEntry(customer, "New customer", "Created user", limit)
 						Method.sendMessage(user.id, "Limit increase request created successfully, " +
 							"customer id: ${customer.id}, request id: ${result.id}")
 					}
