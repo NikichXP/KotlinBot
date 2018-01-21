@@ -102,7 +102,6 @@ constructor(context: ApplicationContext) {
 	}
 	
 	@GetMapping("/proceed")
-	@Throws(IOException::class)
 	fun proceed(@RequestParam("code") code: String): ResponseEntity<*> {
 		
 		val headers = HttpHeaders()

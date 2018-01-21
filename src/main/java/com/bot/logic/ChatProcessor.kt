@@ -36,25 +36,58 @@ open class ChatProcessor(val user: User) {
 				Optional.ofNullable(chat.beforeExecution).ifPresent { it.invoke() }
 				try {
 					//Method.sendMessage(user.id, "Started chat: ${chat.name}")
-					chat.actions.forEach {
-						sendMessage(it.first)
-						lock.acquire()
-						if (message == "/home") {
-							chat = BaseChats.hello(user)
-							return@ifPresent
+					var selectedAction: Pair<Response, (String) -> Unit>
+					var i = 0
+					while (i < chat.actions.size) {
+						if (i < 0) {
+							i = 0
 						}
-						try {
-							it.second.invoke(message!!)
-							if (chat.eachStepAction != null) {
-								chat.eachStepAction!!.invoke()
+						selectedAction = chat.actions[i]
+						sendMessage(selectedAction.first)
+						lock.acquire()
+						when (message) {
+							"/home" -> {
+								chat = BaseChats.hello(user)
+								return@ifPresent
 							}
-						} catch (e: Exception) {
-							println("here!")
-							if (chat.errorHandler.first.invoke(e)) {
-								throw e
+							"/back" -> {
+								i -= 1
+							}
+							else    -> {
+								try {
+									selectedAction.second.invoke(message!!)
+									if (chat.eachStepAction != null) {
+										chat.eachStepAction!!.invoke()
+									}
+								} catch (e: Exception) {
+									println("here!")
+									if (chat.errorHandler.first.invoke(e)) {
+										throw e
+									}
+								}
+								i++
 							}
 						}
 					}
+					//					chat.actions.forEach {
+					//						sendMessage(it.first)
+					//						lock.acquire()
+					//						if (message == "/home") {
+					//							chat = BaseChats.hello(user)
+					//							return@ifPresent
+					//						}
+					//						try {
+					//							it.second.invoke(message!!)
+					//							if (chat.eachStepAction != null) {
+					//								chat.eachStepAction!!.invoke()
+					//							}
+					//						} catch (e: Exception) {
+					//							println("here!")
+					//							if (chat.errorHandler.first.invoke(e)) {
+					//								throw e
+					//							}
+					//						}
+					//					}
 					Optional.ofNullable(chat.onCompleteAction).ifPresent { it.invoke() }
 					Optional.ofNullable(chat.onCompleteMessage).ifPresent { sendMessage(it) }
 				} catch (e: Exception) {

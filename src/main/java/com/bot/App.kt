@@ -1,11 +1,13 @@
 package com.bot
 
 import com.bot.tgapi.Method
-import com.bot.util.GSheetsAPI
+import com.bot.util.*
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.ConfigurableApplicationContext
 import java.text.DecimalFormat
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -38,7 +40,10 @@ fun main(args: Array<String>) {
 	Logger.getLogger("AppLoader").log(Level.INFO, "Loading complete")
 	Method.setupWebhook()
 	
-	val x: Double = 10_000_000.02
+	//	val x: Double = 10_000_000.02
+	//
+	//	println(DecimalFormat("#,###.##").format(x))
+	//	val a = 155L
 	
-	println(DecimalFormat("#,###.##").format(x))
+	println(LocalDateTime.now().plusDays(1).plusHours(1).plusMinutes(15).getTimeDiff(LocalDateTime.now()))
 }

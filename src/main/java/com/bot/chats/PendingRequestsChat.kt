@@ -87,8 +87,7 @@ class PendingRequestsChat(val user: User) {
 				if (it.contains("cancel")) {
 					return@setNextChatFunction getChat()
 				} else {
-					select.amount = it.toDouble()
-					select.status = Status.APPROVED.value
+					select.approve(user, it.toDouble())
 					creditIncreaseRepo.save(select as CreditIncreaseRequest)
 					gSheetsAPI.updateCellsWhere(page = select.type, criteria = { it[0] == select.id }, updateFx = {
 						it[7] = select.status
@@ -113,7 +112,7 @@ class PendingRequestsChat(val user: User) {
 					return@setNextChatFunction getChat()
 				} else {
 					select.releaseId = it
-					select.status = Status.APPROVED.value
+					select.approve(user)
 					creditObtainsRepo.save(select)
 					gSheetsAPI.updateCellsWhere(page = "Requests", criteria = { it[0] == select.id }, updateFx = {
 						it[6] = DecimalFormat("#,###.##").format(select.amount)
