@@ -9,6 +9,7 @@ import com.bot.entity.requests.CreditObtainRequest
 import com.bot.entity.requests.CreditRequest
 import com.bot.entity.requests.Status
 import com.bot.logic.Notifier
+import com.bot.logic.TextResolver
 import com.bot.repo.CreditIncreaseRepo
 import com.bot.repo.CreditObtainRepo
 import com.bot.repo.CustomerRepo
@@ -43,13 +44,7 @@ class PendingRequestsChat(val user: User) {
 				select = requestList[it.replace("/", "").toInt() - 1]
 			})
 			.setNextChatFunction(Response {
-				select.getText() + """
-				/cancel editing
-				/home for main menu
-				/approve this
-				/decline this
-				Or set your own credit limit (12345.67)
-			"""
+				select.getText() + TextResolver.getText("pendingRequest.actionSelect")
 			}, {
 				
 				fun getCorrespondingChat(request: CreditRequest): ChatBuilder = if (request is CreditObtainRequest) approveRelease() else approveCreditLimit()
@@ -71,7 +66,7 @@ class PendingRequestsChat(val user: User) {
 							select.amount = it.toDouble()
 							return@setNextChatFunction getCorrespondingChat(select)
 						}
-						Method.sendMessage(user.id, "Unknown action")
+						Method.sendMessage(user.id, "pendingRequest.error.unknownAction")
 						return@setNextChatFunction getChat()
 					}
 				}
@@ -86,7 +81,7 @@ class PendingRequestsChat(val user: User) {
 	fun approveCreditLimit(): ChatBuilder {
 		val oldAmount = select.amount
 		return ChatBuilder(user).name("pendingRequests_approveCreditLimit")
-			.setNextChatFunction("Enter amount or /cancel", {
+			.setNextChatFunction("pendingRequest.enterLimitAmount", {
 				if (it.contains("cancel")) {
 					return@setNextChatFunction getChat()
 				} else {
@@ -111,7 +106,7 @@ class PendingRequestsChat(val user: User) {
 	fun approveRelease(): ChatBuilder {
 		val select = this.select as CreditObtainRequest
 		return ChatBuilder(user).name("pendingRequests_release")
-			.setNextChatFunction("Enter Release ID or /cancel", {
+			.setNextChatFunction("pendingRequest.enterReleaseID", {
 				if (it.contains("cancel")) {
 					return@setNextChatFunction getChat()
 				} else {

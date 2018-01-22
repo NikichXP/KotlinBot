@@ -5,6 +5,7 @@ import com.bot.entity.ChatBuilder
 import com.bot.entity.Response
 import com.bot.entity.User
 import com.bot.logic.TextResolver
+import com.bot.logic.TextResolver.getText
 import com.bot.util.GSheetsAPI
 import com.nikichxp.util.Async.async
 
@@ -25,16 +26,16 @@ object BaseChats {
 				.withViewData(TextResolver.getText("home"))
 				.withCustomKeyboard(TextResolver.mainMenu), {
 				return@setNextChatFunction when (it) {
-					TextResolver.getText("createCustomer")  -> CreateCustomerChat(user).getChat()
-					TextResolver.getText("createRequest")   -> CreateRequestChat(user).getChat()
-					TextResolver.getText("myRequests")      -> MyRequestsChat(user).getChat()
-					TextResolver.getText("pendingRequests") -> PendingRequestsChat(user).getChat()
-					TextResolver.getText("manageUsers")     -> ManageUsersChat(user).getChat()
-					TextResolver.getText("pendingUsers")    -> ManageUsersChat(user).getChat()
-					"test", "/test"                         -> test(user)
-					"2"                                     -> chat2(user)
-					"3"                                     -> chat3(user)
-					else                                    -> hello(user)
+					getText("createCustomer")  -> CreateCustomerChat(user).getChat()
+					getText("createRequest")   -> CreateRequestChat(user).getChat()
+					getText("myRequests")      -> MyRequestsChat(user).getChat()
+					getText("pendingRequests") -> PendingRequestsChat(user).getChat()
+					getText("manageUsers")     -> ManageUsersChat(user).getChat()
+					getText("pendingUsers")    -> ManageUsersChat(user).getChat()
+					"test", "/test"            -> test(user)
+					"2"                        -> chat2(user)
+					"3"                        -> chat3(user)
+					else                       -> hello(user)
 				}
 			})
 	

@@ -21,7 +21,7 @@ object TextResolver {
 	init {
 		storedData = Gson().fromJson<ConcurrentHashMap<String, String>>(BufferedReader(
 			InputStreamReader(
-				FileInputStream(System.getProperty("user.dir") + "\\texts.json")
+				FileInputStream(System.getProperty("user.dir") + "\\texts.jsonx")
 			)
 		).lines().filter { !it.trim().startsWith("//") }.reduce { a, b -> a + b }.orElse("{}"), ConcurrentHashMap::class.java)
 		

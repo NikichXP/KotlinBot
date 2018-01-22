@@ -6,6 +6,7 @@ import com.bot.entity.Response
 import com.bot.entity.User
 import com.bot.entity.requests.CreditRequest
 import com.bot.entity.requests.Status
+import com.bot.logic.TextResolver.getText
 import com.bot.repo.CreditIncreaseRepo
 import com.bot.repo.CreditObtainRepo
 import java.util.concurrent.atomic.AtomicInteger
@@ -25,12 +26,12 @@ class MyRequestsChat(val user: User) {
 				requestList.addAll(creditObtainsRepo.findByCreator(user.id))
 				requestList.addAll(creditIncreaseRepo.findByCreator(user.id))
 				
-				"Select your request or back /home to menu\n\n" +
+				getText("myRequests.selectRequest") + "\n\n" +
 					requestList.stream().map {
 						"/${int.incrementAndGet()} -- ${it.customer.fullName} ::" +
 							" ${it.type} :: ${it.amount} :: ${it.status}"
 					}
-						.reduce { a, b -> "$a\n$b" }.orElse("None of your requests found")
+						.reduce { a, b -> "$a\n$b" }.orElse("myRequests.selectRequest.error.empty")
 			}, {
 				return@setNextChatFunction when {
 					it == "/home"            -> BaseChats.hello(user)
@@ -51,8 +52,7 @@ class MyRequestsChat(val user: User) {
 	fun modifyRequest(): ChatBuilder {
 		return ChatBuilder(user).name("myRequests_modifyRequest")
 			.setNextChatFunction(Response {
-				select.getText() + "\n\n /back to all orders\n/home to main menu\n" +
-					"/decline request (you can decline approved)"
+				select.getText() + "\n\n" + getText("myRequests.view.requestActions")
 			}, {
 				return@setNextChatFunction when (it) {
 					"/back"    -> this.getChat()

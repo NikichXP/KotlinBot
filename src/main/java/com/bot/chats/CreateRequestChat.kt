@@ -7,6 +7,7 @@ import com.bot.repo.CustomerRepo
 import com.bot.entity.ChatBuilder
 import com.bot.entity.requests.CreditIncreaseRequest
 import com.bot.entity.requests.CreditObtainRequest
+import com.bot.logic.TextResolver
 import com.bot.repo.CreditIncreaseRepo
 import com.bot.util.GSheetsAPI
 import java.text.DecimalFormat
@@ -43,7 +44,7 @@ class CreateRequestChat(val user: User) {
 		.setNextChatFunction(Response {
 			val num = AtomicInteger(0)
 			
-			return@Response "Choose client or enter new search query or /cancel or /create:\n" + customerList.stream()
+			return@Response TextResolver.getText("createRequest.search.choose") + "\n" + customerList.stream()
 				.map { "/${num.getAndIncrement()} ${it.fullName} " }
 				.reduce { a, b -> "$a\n$b" }.orElse("createRequest.search.empty")
 		}, {
@@ -67,7 +68,7 @@ class CreateRequestChat(val user: User) {
 	
 	
 	fun getAction() = ChatBuilder(user).name("createRequest_selectAction")
-		.setNextChatFunction(Response(user.id, "1 to create credit widthdraw, 2 for credit limit increase")
+		.setNextChatFunction(Response(user, "createRequest.search.getAction")
 			.withCustomKeyboard(arrayOf("Credit release", "Limit increase", "Cancel")),
 			{
 				return@setNextChatFunction when {
@@ -79,22 +80,21 @@ class CreateRequestChat(val user: User) {
 	
 	private fun getCreditReleaseChat() = ChatBuilder(user).name("createRequest_release")
 		.beforeExecution { creditObtainRequest = CreditObtainRequest(creator = user.id, customer = customer!!) }
-		.then("Enter load amount", {
+		.then("createRequest.creditRelease.amount", {
 			creditObtainRequest.amount = it.toDouble()
 		})
-		.then("When is the pickup? Formats: 5/24, 2015-4-25\nAlso available: /today /tomorrow /monday /tuesday " +
-			"/wednesday /thursday /friday /saturday /sunday", {
-			creditObtainRequest.pickupDate = when (it) {
-				"/today"     -> LocalDate.now()
-				"/tomorrow"  -> LocalDate.now().plusDays(1)
-				"/monday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY))
-				"/tuesday"   -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.TUESDAY))
-				"/wednesday" -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY))
-				"/thursday"  -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.THURSDAY))
-				"/friday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.FRIDAY))
-				"/saturday"  -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SATURDAY))
-				"/sunday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY))
-				else         -> {
+		.then("createRequest.creditRelease.date", {
+			creditObtainRequest.pickupDate = when (if (it.startsWith("/")) it.substring(1) else it) {
+				"today"     -> LocalDate.now()
+				"tomorrow"  -> LocalDate.now().plusDays(1)
+				"monday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY))
+				"tuesday"   -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.TUESDAY))
+				"wednesday" -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY))
+				"thursday"  -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.THURSDAY))
+				"friday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.FRIDAY))
+				"saturday"  -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SATURDAY))
+				"sunday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY))
+				else        -> {
 					if (it.matches(Regex("\\d{1,2}/\\d{1,2}"))) {
 						LocalDate.now().withMonth(it.split("/")[0].toInt())
 							.withDayOfMonth(it.split("/")[1].toInt())
@@ -104,11 +104,11 @@ class CreateRequestChat(val user: User) {
 				}
 			}
 		})
-		.then(Response(user.id, "BCO or carrier?").withCustomKeyboard(arrayOf("BCO", "Carrier")), {
+		.then(Response(user.id, "createRequest.creditRelease.bco").withCustomKeyboard(arrayOf("BCO", "Carrier")), {
 			creditObtainRequest.bco = it.contains("bco", true)
 		})
-		.then("Enter cargo ID (FB)", { creditObtainRequest.fb = it })
-		.then("Add a comment", { creditObtainRequest.comment = it })
+		.then("createRequest.creditRelease.fb", { creditObtainRequest.fb = it })
+		.then("createRequest.creditRelease.comment", { creditObtainRequest.comment = it })
 		.setOnCompleteMessage(Response { "Your request #${creditObtainRequest.id} was written to DB. Thanks." })
 		.setOnCompleteAction {
 			creditObtainsRepo.save(creditObtainRequest)
@@ -134,8 +134,8 @@ class CreateRequestChat(val user: User) {
 	
 	private fun getCreditLimitIncreaseChat() = ChatBuilder(user).name("createRequest_increase")
 		.beforeExecution { creditIncreaseRequest = CreditIncreaseRequest(creator = user.id, customer = customer!!) }
-		.then("Enter amount, $", { creditIncreaseRequest.amount = it.toDouble() })
-		.then("Add a comment", { creditIncreaseRequest.comment = it })
+		.then("createRequest.limitIncrease.amount", { creditIncreaseRequest.amount = it.toDouble() })
+		.then("createRequest.limitIncrease.comment", { creditIncreaseRequest.comment = it })
 		.setOnCompleteAction {
 			createLimitEntry(customer!!, creditIncreaseRequest)
 		}

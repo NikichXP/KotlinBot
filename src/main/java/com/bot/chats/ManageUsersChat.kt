@@ -23,7 +23,7 @@ class ManageUsersChat(val user: User) {
 	
 	fun getChat(): ChatBuilder {
 		return ChatBuilder(user).name("manageUsers.select")
-			.setNextChatFunction(Response { "Choose action:\n/all users\nOr enter name (or part) to find user" }, {
+			.setNextChatFunction("Choose action:\n/all users\nOr enter name (or part) to find user", {
 				if (it == "/all") {
 					return@setNextChatFunction allUsersList(0)
 				} else {
@@ -49,13 +49,13 @@ class ManageUsersChat(val user: User) {
 			})
 	}
 	
-	fun getTextByUsers(users: List<User>, skip: Int = 0): String {
+	private fun getTextByUsers(users: List<User>, skip: Int = 0): String {
 		val i = AtomicInteger(0)
 		return "Choose user or use /prev <=> /next page or \"/search Vladislav\" to search within full name. Skipping users now: $skip\n" +
 			"Users: ${users.stream().map { "/${i.incrementAndGet()} ${it.fullName}" }.reduce { a, b -> "$a\n$b" }.orElse("End of list.")}"
 	}
 	
-	fun findUsersBy(string: String, skip: Int = 0): ChatBuilder {
+	private fun findUsersBy(string: String, skip: Int = 0): ChatBuilder {
 		// fuck optimization. I'm fabulous
 		val users = userRepo.findAll().stream()
 			.filter { it.fullName?.contains(string, true) ?: false }

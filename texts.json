@@ -41,13 +41,32 @@
   //CreateRequest
   //Intro
   "createRequest.hello": "Enter client name or ID",
-  "createRequest.search.hello": "Enter client name or ID",
+  "createRequest.search.choose": "Choose client or enter new search query or /cancel or /create:",
   "createRequest.search.empty": "Empty result. Try again",
+  "createRequest.search.getAction": "1 to create credit widthdraw, 2 for credit limit increase",
+
+  //CreditReleaseChat
+  "createRequest.creditRelease.amount": "Enter load amount",
+  "createRequest.creditRelease.date": "When is the pickup? Formats: 5/24, 2015-4-25\nAlso available: /today /tomorrow /monday /tuesday /wednesday /thursday /friday /saturday /sunday",
+  "createRequest.creditRelease.bco": "BCO or carrier?",
+  "createRequest.creditRelease.fb": "Enter cargo ID (FB)",
+  "createRequest.creditRelease.comment": "Add comment",
+
+  //Limit increase
+  "createRequest.limitIncrease.amount": "Enter amount, $",
+  "createRequest.limitIncrease.comment": "Add comment",
+
+  //Pending Requests
+  "pendingRequest.actionSelect": "\n/cancel editing\n/home for main menu\n/approve this\n/decline this\nOr set your own credit limit (12345.67)",
+  "pendingRequest.enterLimitAmount": "Enter limit amount or /cancel",
+  "pendingRequest.enterReleaseID": "Enter Release ID or /cancel",
+  "pendingRequest.error.unknownAction": "Unknown action",
+
+  //My Requests
+  "myRequests.selectRequest": "Select your request or back /home to menu",
+  "myRequests.selectRequest.error.empty": "No orders found",
+  "myRequests.view.requestActions": "/back to all orders\n/home to main menu\n/decline request (you can not decline approved)",
 
   "cancelled": "Cancelled",
-  "notFound": "Not found",
-
-  "state.create_customer": "Enter client name",
-  "state.create_request": "#keyboard:Choice the request type:#1. Increase limit#2. Obtain credit release#3. Cancel"
-
+  "notFound": "Not found"
 }
