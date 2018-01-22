@@ -8,6 +8,7 @@ import com.bot.entity.requests.CreditIncreaseRequest
 import com.bot.entity.requests.CreditObtainRequest
 import com.bot.entity.requests.CreditRequest
 import com.bot.entity.requests.Status
+import com.bot.logic.Notifier
 import com.bot.repo.CreditIncreaseRepo
 import com.bot.repo.CreditObtainRepo
 import com.bot.repo.CustomerRepo
@@ -60,6 +61,8 @@ class PendingRequestsChat(val user: User) {
 					}
 					"/decline" -> {
 						select.status = Status.DECLINED.value
+						select.approver = user.id
+						Notifier.notifyOnUpdate(select)
 					}
 					"/home"    -> {
 					}
@@ -99,6 +102,7 @@ class PendingRequestsChat(val user: User) {
 					val customer = select.customer
 					customer.creditLimit = select.amount // TODO Migrate from here
 					customerRepo.save(customer)
+					Notifier.notifyOnUpdate(select)
 					return@setNextChatFunction BaseChats.hello(user)
 				}
 			})
@@ -120,6 +124,7 @@ class PendingRequestsChat(val user: User) {
 						it[12] = select.releaseId
 						return@updateCellsWhere it
 					})
+					Notifier.notifyOnUpdate(select)
 					return@setNextChatFunction BaseChats.hello(user)
 				}
 			})

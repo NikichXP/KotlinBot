@@ -32,7 +32,7 @@ class CreateRequestChat(val user: User) {
 	
 	fun getChat(): ChatBuilder {
 		return ChatBuilder(user).name("createRequest_home")
-			.setNextChatFunction("Enter client name or ID", {
+			.setNextChatFunction("createRequest.hello", {
 				customerList = customerRepo.findByFullNameLowerCaseLike(it.toLowerCase())
 				customerRepo.findById(it).ifPresent { customerList.add(it) }
 				return@setNextChatFunction chooseClient()
@@ -45,7 +45,7 @@ class CreateRequestChat(val user: User) {
 			
 			return@Response "Choose client or enter new search query or /cancel or /create:\n" + customerList.stream()
 				.map { "/${num.getAndIncrement()} ${it.fullName} " }
-				.reduce { a, b -> "$a\n$b" }.orElse("Empty result. Try again.")
+				.reduce { a, b -> "$a\n$b" }.orElse("createRequest.search.empty")
 		}, {
 			if (it.startsWith("/")) {
 				try {

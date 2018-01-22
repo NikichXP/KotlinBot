@@ -1,20 +1,53 @@
 {
-  "state.hello": "Hello! Use /help or /home wherever you are to see main menu.",
-  "state.create_customer": "Enter client name",
-  "state.create_request": "#keyboard:Choice the request type:#1. Increase limit#2. Obtain credit release#3. Cancel",
+  // Register chat
+  "register.hello": "Press start for begin",
+  "register.fullname": "Enter your full name",
+  "register.fullname.error.twoWordsMinRequirement": "Name must contain at least 2 words",
+  "register.email": "Enter email",
+  "register.email.error.check": "This is not an email",
+  "register.check": "Wait for admin to approve you",
+  //TODO Editing data
 
-  "requestCreate.enterCustomerName":"Enter customer name",
-  "customerCreate.address": "Enter address",
-  "customerCreate.info": "Enter info",
-  "customerCreate.complete": "Customer saved",
-  "menu_components": "$create_customer,$create_request,$my_requests#$pending_requests#$manage_brokers,$manage_users,$manage_specialists",
-  "$create_customer": "Create customer",
-  "$create_request": "Create request",
-  "$my_requests": "My requests",
-  "$pending_requests": "Pending requests",
-  "$manage_brokers": "Manage brokers",
-  "$manage_users": "Manage users",
-  "$manage_specialists": "Manage specialists",
-  "cancelled":"Cancelled",
-  "notFound":"Not found"
+  //home
+  "home": "Hello! Use /help or /home wherever you are to see main menu.",
+
+  //main menu
+  "menuComponents": "$createCustomer,$createRequest,$myRequests#$pendingRequests#$manageUsers,$pendingUsers",
+  "$createCustomer": "Create customer",
+  "$createRequest": "Create request",
+  "$myRequests": "My requests",
+  "$pendingRequests": "Pending requests",
+  "$manageUsers": "Manage users",
+  "$pendingUsers": "Pending users",
+
+  //Create customer
+  "customerCreate.hello": "Create user or import existing?",
+
+  //Import chat
+  "customerCreate.import.name": "Enter customer name",
+  "customerCreate.import.id": "Enter customer ID",
+  "customerCreate.import.address": "Enter customer or /skip this step",
+  "customerCreate.import.info": "Enter customer contact info",
+
+  //Create chat
+  "customerCreate.create.name": "Enter customer name",
+  "customerCreate.create.address": "Enter address",
+  "customerCreate.create.info": "Enter client contact info",
+  "customerCreate.create.creditLimit.request": "Enter client requested credit limit",
+  "customerCreate.create.creditLimit.request.error.parse": "Parsing failed, limit set to 0.0, request making status: drop",
+  "customerCreate.create.complete.1": "Creation complete. Your user id is:",
+  "customerCreate.create.complete.2": "Continue home or create another request",
+
+  //CreateRequest
+  //Intro
+  "createRequest.hello": "Enter client name or ID",
+  "createRequest.search.hello": "Enter client name or ID",
+  "createRequest.search.empty": "Empty result. Try again",
+
+  "cancelled": "Cancelled",
+  "notFound": "Not found",
+
+  "state.create_customer": "Enter client name",
+  "state.create_request": "#keyboard:Choice the request type:#1. Increase limit#2. Obtain credit release#3. Cancel"
+
 }

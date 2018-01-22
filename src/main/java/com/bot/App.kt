@@ -5,6 +5,7 @@ import com.bot.util.*
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.ConfigurableApplicationContext
+import org.springframework.scheduling.annotation.EnableScheduling
 import java.text.DecimalFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -12,6 +13,7 @@ import java.util.*
 import java.util.logging.Level
 import java.util.logging.Logger
 
+@EnableScheduling
 @SpringBootApplication
 open class App
 

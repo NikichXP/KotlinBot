@@ -2,6 +2,7 @@ package com.bot.chats
 
 import com.bot.Ctx
 import com.bot.entity.*
+import com.bot.logic.TextResolver
 import com.bot.repo.CustomerRepo
 import com.bot.tgapi.Method
 import com.bot.util.GSheetsAPI
@@ -17,7 +18,7 @@ class CreateCustomerChat(val user: User) {
 	
 	fun getChat() = ChatBuilder(user).name("createCustomer_intro")
 		.setNextChatFunction(
-			Response(user.id, "Create user or import existing?")
+			Response(user.id, "customerCreate.hello")
 				.withCustomKeyboard(arrayOf("Create user", "Import user")),
 			{
 				return@setNextChatFunction if (it == "Create user") {
@@ -31,10 +32,10 @@ class CreateCustomerChat(val user: User) {
 	private fun importUser(): ChatBuilder {
 		var fullname: String = ""
 		return ChatBuilder(user).name("createCustomer_import")
-			.then("Enter customer name", { fullname = it })
-			.then("Enter customer ID", { customer = Customer(id = it, fullName = fullname, agent = user.id) })
-			.then("Enter address or /skip this step", { if (it != "/skip") customer.address = it })
-			.then("Enter contact info", { customer.info = it })
+			.then("customerCreate.import.name", { fullname = it })
+			.then("customerCreate.import.id", { customer = Customer(id = it, fullName = fullname, agent = user.id) })
+			.then("customerCreate.import.address", { if (it != "/skip") customer.address = it })
+			.then("customerCreate.import.info", { customer.info = it })
 			.setOnCompleteAction { customerRepo.save(customer) }
 			.setOnCompleteMessage("Customer ${customer.fullName} with ID ${customer.id} created")
 			.setNextChatFunction(Response("Creation complete. Your user id is: ${customer.id}.\n" +
@@ -51,22 +52,16 @@ class CreateCustomerChat(val user: User) {
 	private fun createUser(): ChatBuilder {
 		var limit = 0.0
 		return ChatBuilder(user).name("createCustomer_new")
-			.then(Response { "Enter client name" }, {
+			.then(Response { "customerCreate.create.name" }, {
 				customer = Customer(fullName = it, agent = user.id)
 			})
-			.then("Enter client address",
-				{
-					customer.address = it
-				})
-			.then("Enter client contact info",
-				{
-					customer.info = it
-				})
-			.then("Enter requesting credit limit (or 0 to skip this)", {
+			.then("customerCreate.create.address", { customer.address = it })
+			.then("customerCreate.create.info", { customer.info = it })
+			.then("customerCreate.create.creditLimit.request", {
 				try {
 					limit = it.toDouble()
 				} catch (e: Exception) {
-					Method.sendMessage(user.id, "Parsing failed, limit set to 0.0, request making status: drop")
+					Method.sendMessage(user.id, "customerCreate.create.creditLimit.request.error.parse")
 				}
 			})
 			.setOnCompleteAction {
@@ -84,8 +79,8 @@ class CreateCustomerChat(val user: User) {
 					}
 				}
 			}
-			.setNextChatFunction(Response("Creation complete. Your user id is: ${customer.id}.\n" +
-				"Continue home or create another request",
+			.setNextChatFunction(Response(TextResolver.getText("customerCreate.create.complete.1", false) + customer.id + "\n" +
+				TextResolver.getText("customerCreate.create.complete.2", false),
 				arrayOf("Home", "Request")),
 				{
 					return@setNextChatFunction when (it) {

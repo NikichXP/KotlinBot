@@ -2,6 +2,7 @@ package com.bot.tgapi
 
 import com.bot.entity.Message
 import com.bot.entity.Response
+import com.bot.logic.TextResolver
 import com.google.gson.Gson
 import com.nikichxp.util.Json
 import org.springframework.http.client.ClientHttpResponse
@@ -16,7 +17,7 @@ import java.nio.charset.Charset
 object Method {
 	
 	val botToken = "459040479:AAEy_zLBpoDBh0B3EccUy00kHjzSGQRr99M"
-	val hostName = "https://43adf53e.ngrok.io"
+	val hostName = "https://68e708d2.ngrok.io"
 	val baseURL = "https://api.telegram.org/bot$botToken/"
 	
 	val restTemplate = RestTemplate()
@@ -34,7 +35,7 @@ object Method {
 	}
 	
 	fun sendMessage(chatId: String, text: String) {
-		method("sendMessage", "chat_id", chatId, "text", text)
+		method("sendMessage", "chat_id", chatId, "text", TextResolver.getText(text, false))
 	}
 	
 	
@@ -43,6 +44,7 @@ object Method {
 	}
 	
 	fun sendMessage(response: Response) {
+		response.findTextSupplements(false)
 		val res = response.toJson()
 		println(res)
 		method("sendMessage", res)

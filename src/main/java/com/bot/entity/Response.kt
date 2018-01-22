@@ -1,5 +1,6 @@
 package com.bot.entity
 
+import com.bot.logic.TextResolver
 import com.bot.tgapi.InlineKeyboardMarkup
 import com.bot.tgapi.ReplyKeyboardMarkup
 import com.bot.tgapi.ReplyKeyboardRemove
@@ -16,7 +17,6 @@ class Response(var chat_id: String?, text: String) {
 	
 	constructor(user: User, text: String) : this(user.id, text)
 	constructor(user: User) : this(user.id, "")
-//	constructor(chat_id: String?) : this(chat_id, "")
 	constructor(text: String, keys: Array<String>) : this(null, text) {
 		withCustomKeyboard(keys)
 	}
@@ -84,6 +84,7 @@ class Response(var chat_id: String?, text: String) {
 	
 	fun toJson(): String {
 		if (lateinitFx != null) text = lateinitFx!!.invoke()
+		text = TextResolver.getText(text, false)
 		return gson.toJson(this)
 	}
 	
@@ -94,5 +95,9 @@ class Response(var chat_id: String?, text: String) {
 	
 	companion object {
 		val gson = Gson()
+	}
+	
+	fun findTextSupplements(correct: Boolean) {
+		text = TextResolver.getText(text, correct)
 	}
 }

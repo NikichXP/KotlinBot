@@ -3,7 +3,6 @@ package com.bot.chats
 import com.bot.Ctx
 import com.bot.entity.ChatBuilder
 import com.bot.entity.Response
-import com.bot.entity.State
 import com.bot.entity.User
 import com.bot.logic.TextResolver
 import com.bot.util.GSheetsAPI
@@ -20,20 +19,22 @@ object BaseChats {
 	}
 	
 	fun hello(user: User): ChatBuilder =
-		ChatBuilder(user).name("hello")
+		if (user.accessLevel == 0 || user.type == User.Companion.Type.NONAME) RegisterChat(user).getChat()
+		else ChatBuilder(user).name("hello")
 			.setNextChatFunction(Response(user)
-				.withViewData(TextResolver.getStateText(State.HELLO))
+				.withViewData(TextResolver.getText("home"))
 				.withCustomKeyboard(TextResolver.mainMenu), {
 				return@setNextChatFunction when (it) {
-					TextResolver.getText("create_customer")  -> CreateCustomerChat(user).getChat()
-					TextResolver.getText("create_request")   -> CreateRequestChat(user).getChat()
-					TextResolver.getText("my_requests")      -> MyRequestsChat(user).getChat()
-					TextResolver.getText("pending_requests") -> PendingRequestsChat(user).getChat()
-					TextResolver.getText("manage_users")     -> ManageUsersChat(user).getChat()
-					"test", "/test"                          -> test(user)
-					"2"                                      -> chat2(user)
-					"3"                                      -> chat3(user)
-					else                                     -> hello(user)
+					TextResolver.getText("createCustomer")  -> CreateCustomerChat(user).getChat()
+					TextResolver.getText("createRequest")   -> CreateRequestChat(user).getChat()
+					TextResolver.getText("myRequests")      -> MyRequestsChat(user).getChat()
+					TextResolver.getText("pendingRequests") -> PendingRequestsChat(user).getChat()
+					TextResolver.getText("manageUsers")     -> ManageUsersChat(user).getChat()
+					TextResolver.getText("pendingUsers")    -> ManageUsersChat(user).getChat()
+					"test", "/test"                         -> test(user)
+					"2"                                     -> chat2(user)
+					"3"                                     -> chat3(user)
+					else                                    -> hello(user)
 				}
 			})
 	

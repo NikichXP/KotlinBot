@@ -4,10 +4,11 @@ import org.springframework.data.annotation.Id
 import java.util.*
 
 data class User(@Id var id: String,
-                var type: Type = Type.CLIENT,
+                var type: Type = Type.NONAME,
                 var fullName: String? = null,
                 var username: String? = null,
                 var email: String? = null,
+                var accessLevel: Int = 0,
                 var balance: Double = 0.0) {
 	
 	constructor(message: Message) : this(
@@ -18,7 +19,7 @@ data class User(@Id var id: String,
 	
 	companion object {
 		enum class Type {
-			CLIENT, BROKER, ADMIN, NONAME, CREDIT
+			BROKER, ADMIN, NONAME, CREDIT
 		}
 	}
 }
