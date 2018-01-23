@@ -1,1 +1,1 @@
-web: java -jar -Dserver.port=$PORT target/taxi-service-1.2.0.jar
+web: java -jar -Dserver.port=$PORT target/landstarbot-1.0.0.BETA1.jar

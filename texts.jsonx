@@ -21,45 +21,45 @@
   "$pendingUsers": "Pending users",
 
   //Create customer
-  "customerCreate.hello": "Create user or import existing?",
+  "customerCreate.hello": "Create customer or add existing?",
 
   //Import chat
   "customerCreate.import.name": "Enter customer name",
-  "customerCreate.import.id": "Enter customer ID",
+  "customerCreate.import.id": "Enter customer Acc#",
   "customerCreate.import.address": "Enter customer or /skip this step",
   "customerCreate.import.info": "Enter customer contact info",
 
   //Create chat
   "customerCreate.create.name": "Enter customer name",
   "customerCreate.create.address": "Enter address",
-  "customerCreate.create.info": "Enter client contact info",
-  "customerCreate.create.creditLimit.request": "Enter client requested credit limit",
+  "customerCreate.create.info": "Enter customer contact info",
+  "customerCreate.create.creditLimit.request": "Enter customer requested credit limit",
   "customerCreate.create.creditLimit.request.error.parse": "Parsing failed, limit set to 0.0, request making status: drop",
-  "customerCreate.create.complete.1": "Creation complete. Your user id is:",
+  "customerCreate.create.complete.1": "Creation complete. Your customer id is:",
   "customerCreate.create.complete.2": "Continue home or create another request",
 
   //CreateRequest
   //Intro
-  "createRequest.hello": "Enter client name or ID",
-  "createRequest.search.choose": "Choose client or enter new search query or /cancel or /create:",
+  "createRequest.hello": "Enter Customer name or acc#",
+  "createRequest.search.choose": "Choose Customer or enter new search query or /cancel or /create:",
   "createRequest.search.empty": "Empty result. Try again",
-  "createRequest.search.getAction": "1 to create credit widthdraw, 2 for credit limit increase",
+  "createRequest.search.getAction": "1 to request credit release#, 2 for increase credit limit",
 
   //CreditReleaseChat
   "createRequest.creditRelease.amount": "Enter load amount",
   "createRequest.creditRelease.date": "When is the pickup? Formats: 5/24, 2015-4-25\nAlso available: /today /tomorrow /monday /tuesday /wednesday /thursday /friday /saturday /sunday",
   "createRequest.creditRelease.bco": "BCO or carrier?",
-  "createRequest.creditRelease.fb": "Enter cargo ID (FB)",
+  "createRequest.creditRelease.fb": "Please Enter FB#",
   "createRequest.creditRelease.comment": "Add comment",
 
   //Limit increase
-  "createRequest.limitIncrease.amount": "Enter amount, $",
+  "createRequest.limitIncrease.amount": "Enter load amount, $",
   "createRequest.limitIncrease.comment": "Add comment",
 
   //Pending Requests
   "pendingRequest.actionSelect": "\n/cancel editing\n/home for main menu\n/approve this\n/decline this\nOr set your own credit limit (12345.67)",
   "pendingRequest.enterLimitAmount": "Enter limit amount or /cancel",
-  "pendingRequest.enterReleaseID": "Enter Release ID or /cancel",
+  "pendingRequest.enterReleaseID": "Enter credit Releas# or /cancel",
   "pendingRequest.error.unknownAction": "Unknown action",
 
   //My Requests
