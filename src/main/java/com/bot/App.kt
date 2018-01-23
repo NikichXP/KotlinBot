@@ -41,11 +41,4 @@ fun main(args: Array<String>) {
 	}
 	Logger.getLogger("AppLoader").log(Level.INFO, "Loading complete")
 	Method.setupWebhook()
-	
-	//	val x: Double = 10_000_000.02
-	//
-	//	println(DecimalFormat("#,###.##").format(x))
-	//	val a = 155L
-	
-	println(LocalDateTime.now().plusDays(1).plusHours(1).plusMinutes(15).getTimeDiff(LocalDateTime.now()))
 }

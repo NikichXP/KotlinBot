@@ -12,15 +12,15 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import java.nio.charset.Charset
+import java.util.*
 
 
 object Method {
 	
-	val botToken = "459040479:AAEy_zLBpoDBh0B3EccUy00kHjzSGQRr99M"
-	val hostName = "https://68e708d2.ngrok.io"
-	val baseURL = "https://api.telegram.org/bot$botToken/"
-	
-	val restTemplate = RestTemplate()
+	private val botToken = Optional.ofNullable(System.getenv("bot-token")).orElse("459040479:AAEy_zLBpoDBh0B3EccUy00kHjzSGQRr99M")
+	private val hostName = Optional.ofNullable(System.getenv("host-server")).orElse("https://68e708d2.ngrok.io")
+	private val baseURL = "https://api.telegram.org/bot$botToken/"
+	private val restTemplate = RestTemplate()
 	val gson = Gson()
 	
 	init {
