@@ -24,18 +24,16 @@ object BaseChats {
 		else ChatBuilder(user).name("hello")
 			.setNextChatFunction(Response(user)
 				.withViewData(TextResolver.getText("home"))
-				.withCustomKeyboard(TextResolver.mainMenu), {
-				return@setNextChatFunction when (it) {
-					getText("createCustomer")  -> CreateCustomerChat(user).getChat()
-					getText("createRequest")   -> CreateRequestChat(user).getChat()
-					getText("myRequests")      -> MyRequestsChat(user).getChat()
-					getText("pendingRequests") -> PendingRequestsChat(user).getChat()
-					getText("manageUsers")     -> ManageUsersChat(user).getChat()
-					getText("pendingUsers")    -> ManageUsersChat(user).getChat()
-					"test", "/test"            -> test(user)
-					"2"                        -> chat2(user)
-					"3"                        -> chat3(user)
-					else                       -> hello(user)
+				.withCustomKeyboard(TextResolver.mainMenu.slice(0 until user.accessLevel).toTypedArray()), {
+				return@setNextChatFunction when {
+					it == getText("createCustomer")                          -> CreateCustomerChat(user).getChat()
+					it == getText("createRequest")                           -> CreateRequestChat(user).getChat()
+					it == getText("myRequests")                              -> MyRequestsChat(user).getChat()
+					it == getText("pendingRequests") && user.accessLevel > 1 -> PendingRequestsChat(user).getChat()
+					it == getText("manageUsers") && user.accessLevel > 2     -> ManageUsersChat(user).getChat()
+					it == getText("pendingUsers") && user.accessLevel > 2    -> ManageUsersChat(user).getChat()
+					it.contains("test")                                      -> test(user)
+					else                                                     -> hello(user)
 				}
 			})
 	
@@ -46,37 +44,5 @@ object BaseChats {
 					"Test", gSheetsAPI.getFirstFreeLine(gSheetsAPI.sheetId, "Test"),
 					arrayOf("A", "B", "C", "D"))
 			}
-	
-	fun chat2(user: User): ChatBuilder =
-		ChatBuilder(user)
-			.then(Response(user).withText("text2-1")
-				.withCustomKeyboard(arrayOf<String>()), { println(it) })
-			.then("text2-2", { println(it) })
-			.then("text2-3", { println(it) })
-			.then("text2-4", { println(it) })
-			.setNextChatFunction("Num of chat next?", {
-				return@setNextChatFunction when {
-					it.contains("1") -> hello(user)
-					it.contains("2") -> chat2(user)
-					it.contains("3") -> chat3(user)
-					else             -> hello(user)
-				}
-			})
-	
-	fun chat3(user: User): ChatBuilder =
-		ChatBuilder(user)
-			.then("text3-1", { println(it) })
-			.then("text3-2", { println(it) })
-			.then("text3-3", { println(it) })
-			.then("text3-4", { println(it) })
-			.setNextChatFunction("Num of chat next?", {
-				return@setNextChatFunction when {
-					it.contains("1") -> hello(user)
-					it.contains("2") -> chat2(user)
-					it.contains("3") -> chat3(user)
-					else             -> hello(user)
-				}
-			})
-	
 	
 }

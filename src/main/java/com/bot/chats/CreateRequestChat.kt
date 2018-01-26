@@ -116,7 +116,7 @@ class CreateRequestChat(val user: User) {
 				arrayOf(
 					creditObtainRequest.id,
 					LocalDate.now().toString(), //request.id	LocalDate.now()	user.name	customer.name
-					user.username + "/" + user.id,
+					user.fullName!!,
 					customer!!.fullName,
 					customer!!.id, //customer.id	новое поле fb	select.amount	String	select.status.value	пустое поле
 					creditObtainRequest.fb,
@@ -153,7 +153,7 @@ class CreateRequestChat(val user: User) {
 		sheetsAPI.writeToTable("default", creditIncreaseRequest.type, -1,
 			arrayOf(creditIncreaseRequest.id,
 				LocalDate.now().toString(),
-				user.username + "/" + user.id,
+				user.fullName!!,
 				customer.fullName,
 				customer.id,
 				"",

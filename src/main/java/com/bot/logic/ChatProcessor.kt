@@ -46,14 +46,14 @@ open class ChatProcessor(val user: User) {
 						sendMessage(selectedAction.first)
 						lock.acquire()
 						when (message) {
-							"/home" -> {
+							"/help", "/home" -> {
 								chat = BaseChats.hello(user)
 								return@ifPresent
 							}
-							"/back" -> {
+							"/back"          -> {
 								i -= 1
 							}
-							else    -> {
+							else             -> {
 								try {
 									selectedAction.second.invoke(message!!)
 									if (chat.eachStepAction != null) {

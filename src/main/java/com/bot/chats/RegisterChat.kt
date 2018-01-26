@@ -1,19 +1,22 @@
 package com.bot.chats
 
-import com.bot.Ctx
 import com.bot.entity.*
-import com.bot.repo.UserRepo
+import com.bot.repo.UserFactory
 import com.bot.tgapi.Method
 
 class RegisterChat(var user: User) {
-	
-	val userRepo = Ctx.get(UserRepo::class.java)
 	
 	fun getChat(): ChatBuilder = ChatBuilder(user).name("register_hello")
 		.setNextChatFunction(Response(user, "register.hello").withCustomKeyboard(arrayOf("Start")), {
 			return@setNextChatFunction if (it != "Start") {
 				getChat()
-			} else getName()
+			} else {
+				when {
+					user.fullName == null -> getName()
+					user.email == null    -> getMail()
+					else                  -> getApprove()
+				}
+			}
 		})
 	
 	fun getName(): ChatBuilder = ChatBuilder(user).name("register_name")
@@ -23,7 +26,7 @@ class RegisterChat(var user: User) {
 				return@setNextChatFunction getChat()
 			} else {
 				user.fullName = it
-				userRepo.save(user)
+				UserFactory.save(user.id)
 				return@setNextChatFunction getMail()
 			}
 		})
@@ -35,14 +38,22 @@ class RegisterChat(var user: User) {
 				return@setNextChatFunction getMail()
 			} else {
 				user.email = it
-				userRepo.save(user)
+				UserFactory.save(user.id)
 				return@setNextChatFunction getApprove()
 			}
 		})
 	
 	fun getApprove(): ChatBuilder = ChatBuilder(user).name("register_check")
-		.setNextChatFunction(Response(user, "Wait for admin to approve you").withCustomKeyboard(arrayOf("Check")), {
-			user = userRepo.findById(user.id).get()
+		.setNextChatFunction(Response(user, "Wait for admin to approve you. Your name and email:\n" +
+			"${user.fullName}\n${user.email}\nYou can edit this data")
+			.withCustomKeyboard(
+				arrayOf("Edit name", "Edit mail", "Check")
+			), {
+			when (it) {
+				"Edit name" -> return@setNextChatFunction getName()
+				"Edit mail" -> return@setNextChatFunction getMail()
+			}
+			user = UserFactory.forceCheck(user.id)
 			
 			if (user.type != User.Companion.Type.NONAME) {
 				return@setNextChatFunction BaseChats.hello(user)

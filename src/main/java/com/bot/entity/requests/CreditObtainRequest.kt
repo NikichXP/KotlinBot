@@ -20,7 +20,7 @@ data class CreditObtainRequest(@Id override val id: String = UUID.randomUUID().t
 	
 	var fb = ""
 	var releaseId: String = ""
-	override val type: String = "Credit obtain"
+	override val type: String = "Credit release"
 	override var status: String = "Pending"
 	override var comment: String = ""
 	

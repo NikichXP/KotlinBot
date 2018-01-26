@@ -4,11 +4,8 @@ import org.springframework.data.annotation.Id
 import java.util.*
 import kotlin.collections.ArrayList
 
-/*
-TODO What is growth, releaseId
- */
-
 class Customer(@Id var id: String = UUID.randomUUID().toString().replace("-", "").substring(0, 10),
+               var accountId: String? = null,
                fullName: String,
                var agent: String,
                var created: Long = System.currentTimeMillis(),

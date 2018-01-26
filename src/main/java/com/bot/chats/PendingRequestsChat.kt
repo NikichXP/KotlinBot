@@ -78,9 +78,9 @@ class PendingRequestsChat(val user: User) {
 			})
 	}
 	
-	fun approveCreditLimit(): ChatBuilder {
+	private fun approveCreditLimit(): ChatBuilder {
 		val oldAmount = select.amount
-		return ChatBuilder(user).name("pendingRequests_approveCreditLimit")
+		val ret = ChatBuilder(user).name("pendingRequests_approveCreditLimit")
 			.setNextChatFunction("pendingRequest.enterLimitAmount", {
 				if (it.contains("cancel")) {
 					return@setNextChatFunction getChat()
@@ -101,9 +101,18 @@ class PendingRequestsChat(val user: User) {
 					return@setNextChatFunction BaseChats.hello(user)
 				}
 			})
+		if (select.type == "New customer") {
+			return ChatBuilder(user).name("pendingRequests_approveClient")
+				.setNextChatFunction("Enter customer account ID", {
+					select.customer.accountId = it
+					customerRepo.save(select.customer)
+					return@setNextChatFunction ret
+				})
+		}
+		return ret
 	}
 	
-	fun approveRelease(): ChatBuilder {
+	private fun approveRelease(): ChatBuilder {
 		val select = this.select as CreditObtainRequest
 		return ChatBuilder(user).name("pendingRequests_release")
 			.setNextChatFunction("pendingRequest.enterReleaseID", {

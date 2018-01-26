@@ -1,10 +1,9 @@
 package com.bot.logic
 
-import com.bot.Ctx
-import com.bot.entity.requests.CreditIncreaseRequest
+import com.bot.entity.User
 import com.bot.entity.requests.CreditObtainRequest
 import com.bot.entity.requests.CreditRequest
-import com.bot.repo.UserRepo
+import com.bot.repo.UserFactory
 import com.bot.tgapi.Method
 import kotlinx.coroutines.experimental.launch
 import java.util.*
@@ -20,9 +19,8 @@ object Notifier {
 	}
 	
 	fun updateUserNamesMapCache() {
-		val userRepo = Ctx.get(UserRepo::class.java)
 		userNamesMap.clear()
-		userRepo.findAll().forEach { userNamesMap.put(it.id, it.fullName ?: it.id) }
+		UserFactory.findAll().forEach { userNamesMap.put(it.id, it.fullName ?: it.id) }
 	}
 	
 	fun userName(id: String?): String {
@@ -55,6 +53,10 @@ object Notifier {
 				}
 			}
 		}
+	}
+	
+	fun notifyOnPermissions(user: User) {
+		Method.sendMessage(user.id, "Your permission level is now ${user.accessLevel} and it is ${user.type.name}")
 	}
 	
 }

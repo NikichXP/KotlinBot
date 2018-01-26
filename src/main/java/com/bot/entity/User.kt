@@ -13,7 +13,7 @@ data class User(@Id var id: String,
 	
 	constructor(message: Message) : this(
 		id = message.senderId,
-		fullName = Optional.ofNullable(message.firstName).orElse("") + " " + Optional.ofNullable(message.lastName).orElse(""), //cause it works only this way
+		fullName = Optional.ofNullable(message.firstName).orElse("") + " " + Optional.ofNullable(message.lastName).orElse(message.username), //cause it works only this way
 		username = message.username
 	)
 	

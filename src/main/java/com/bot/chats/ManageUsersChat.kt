@@ -1,25 +1,17 @@
 package com.bot.chats
 
-import com.bot.Ctx
 import com.bot.entity.ChatBuilder
 import com.bot.entity.Response
 import com.bot.entity.User
-import com.bot.repo.UserRepo
+import com.bot.logic.Notifier
+import com.bot.repo.UserFactory
 import com.bot.util.*
-import kotlinx.coroutines.experimental.launch
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.streams.toList
 
 class ManageUsersChat(val user: User) {
 	
-	lateinit var userRepo: UserRepo
 	lateinit var userList: List<User>
-	
-	init {
-		launch {
-			userRepo = Ctx.get(UserRepo::class.java)
-		}
-	}
 	
 	fun getChat(): ChatBuilder {
 		return ChatBuilder(user).name("manageUsers.select")
@@ -33,7 +25,7 @@ class ManageUsersChat(val user: User) {
 	}
 	
 	fun allUsersList(skip: Int): ChatBuilder {
-		userList = userRepo.findAll()
+		userList = UserFactory.findAll()
 		val userSubList = userList.drop(skip).take(10)
 		return ChatBuilder(user)
 			.setNextChatFunction(Response {
@@ -56,20 +48,19 @@ class ManageUsersChat(val user: User) {
 	}
 	
 	private fun findUsersBy(string: String, skip: Int = 0): ChatBuilder {
-		// fuck optimization. I'm fabulous
-		val users = userRepo.findAll().stream()
+		val users = UserFactory.stream()
 			.filter { it.fullName?.contains(string, true) ?: false }
 			.skip(skip.toLong()).limit(10).toList()
 		return ChatBuilder(user).setNextChatFunction({ getTextByUsers(users, skip) }, {
 			if (it.isSelection()) {
-				return@setNextChatFunction userSelection(users[it.selection()!! - 1])
+				return@setNextChatFunction userSelection(UserFactory[users[it.selection()!! - 1].id])
 			}
 			return@setNextChatFunction getChat()
 		})
 	}
 	
 	fun userSelection(user: User): ChatBuilder {
-		return ChatBuilder(user).name("manageUser.selected")
+		return ChatBuilder(this.user).name("manageUser.selected")
 			.setNextChatFunction(Response {
 				"""
 				User ${user.fullName}
@@ -82,22 +73,28 @@ class ManageUsersChat(val user: User) {
 				when (it) {
 					"/credit" -> {
 						user.type = User.Companion.Type.CREDIT
+						user.accessLevel = 2
 					}
 					"/broker" -> {
 						user.type = User.Companion.Type.BROKER
+						user.accessLevel = 1
 					}
 					"/admin"  -> {
 						user.type = User.Companion.Type.ADMIN
+						user.accessLevel = 3
 					}
 					"/noname" -> {
 						user.type = User.Companion.Type.NONAME
+						user.accessLevel = 0
 					}
 				}
-				userRepo.save(user)
+				UserFactory.save(user.id)
+				Notifier.updateUserNamesMapCache()
+				Notifier.notifyOnPermissions(user)
 				return@setNextChatFunction if (it == "/back") {
 					getChat()
 				} else {
-					BaseChats.hello(user)
+					BaseChats.hello(this.user)
 				}
 			})
 	}

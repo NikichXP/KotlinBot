@@ -19,9 +19,9 @@ class CreateCustomerChat(val user: User) {
 	fun getChat() = ChatBuilder(user).name("createCustomer_intro")
 		.setNextChatFunction(
 			Response(user.id, "customerCreate.hello")
-				.withCustomKeyboard(arrayOf("Create user", "Import user")),
+				.withCustomKeyboard(arrayOf("Create customer", "Import customer")),
 			{
-				return@setNextChatFunction if (it == "Create user") {
+				return@setNextChatFunction if (it == "Create customer") {
 					createUser()
 				} else {
 					importUser()
@@ -33,7 +33,10 @@ class CreateCustomerChat(val user: User) {
 		var fullname: String = ""
 		return ChatBuilder(user).name("createCustomer_import")
 			.then("customerCreate.import.name", { fullname = it })
-			.then("customerCreate.import.id", { customer = Customer(id = it, fullName = fullname, agent = user.id) })
+			.then("customerCreate.import.id", {
+				customer = Customer(id = it, fullName = fullname, agent = user.id)
+				customer.accountId = it
+			})
 			.then("customerCreate.import.address", { if (it != "/skip") customer.address = it })
 			.then("customerCreate.import.info", { customer.info = it })
 			.setOnCompleteAction { customerRepo.save(customer) }
@@ -52,9 +55,7 @@ class CreateCustomerChat(val user: User) {
 	private fun createUser(): ChatBuilder {
 		var limit = 0.0
 		return ChatBuilder(user).name("createCustomer_new")
-			.then(Response { "customerCreate.create.name" }, {
-				customer = Customer(fullName = it, agent = user.id)
-			})
+			.then(Response { "customerCreate.create.name" }, { customer = Customer(fullName = it, agent = user.id) })
 			.then("customerCreate.create.address", { customer.address = it })
 			.then("customerCreate.create.info", { customer.info = it })
 			.then("customerCreate.create.creditLimit.request", {
