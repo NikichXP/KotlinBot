@@ -36,21 +36,22 @@ class CreateRequestChat(val user: User) {
 			.setNextChatFunction("createRequest.hello", {
 				customerList = customerRepo.findByFullNameLowerCaseLike(it.toLowerCase())
 				customerRepo.findById(it).ifPresent { customerList.add(it) }
+				customerList = customerList.filter { it.accountId != null }.toMutableList()
 				return@setNextChatFunction chooseClient()
 			})
 	}
 	
 	fun chooseClient(): ChatBuilder = ChatBuilder(user).name("createRequest_selectClient")
 		.setNextChatFunction(Response {
-			val num = AtomicInteger(0)
+			val num = AtomicInteger(1)
 			
 			return@Response TextResolver.getText("createRequest.search.choose") + "\n" + customerList.stream()
-				.map { "/${num.getAndIncrement()} ${it.fullName} " }
+				.map { "/${num.getAndIncrement()} ${it.fullName} (${it.accountId ?: "Pending"}) " }
 				.reduce { a, b -> "$a\n$b" }.orElse("createRequest.search.empty")
 		}, {
 			if (it.startsWith("/")) {
 				try {
-					customer = customerList[it.replace("/", "").toInt()]
+					customer = customerList[it.replace("/", "").toInt() - 1]
 				} catch (e: Exception) {
 					return@setNextChatFunction when (it) {
 						"/cancel" -> BaseChats.hello(user)

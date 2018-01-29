@@ -36,7 +36,7 @@ class PendingRequestsChat(val user: User) {
 				requestList.addAll(creditObtainsRepo.findByStatus(Status.PENDING.value))
 				requestList.addAll(creditIncreaseRepo.findByStatus(Status.PENDING.value))
 				requestList.stream().map {
-					"/${int.incrementAndGet()} -- ${it.customer.fullName} ::" +
+					"/${int.incrementAndGet()} -- ${it.customer.fullName} (${it.customer.accountId ?: "Pending"}) ::" +
 						" ${it.type} :: ${DecimalFormat("#,###.##").format(it.amount)}"
 				}
 					.reduce { a, b -> "$a\n$b" }.orElse("Nothing found")
