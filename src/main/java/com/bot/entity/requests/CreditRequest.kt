@@ -42,5 +42,6 @@ interface CreditRequest {
 		this.closed = LocalDateTime.now()
 	}
 	
+	fun creatorName(): String = UserFactory[creator].fullName ?: "Noname"
 	
 }

@@ -7,6 +7,7 @@ import com.bot.repo.CustomerRepo
 import com.bot.entity.ChatBuilder
 import com.bot.entity.requests.CreditIncreaseRequest
 import com.bot.entity.requests.CreditObtainRequest
+import com.bot.logic.Notifier
 import com.bot.logic.TextResolver
 import com.bot.repo.CreditIncreaseRepo
 import com.bot.util.GSheetsAPI
@@ -114,50 +115,49 @@ class CreateRequestChat(val user: User) {
 		.setOnCompleteMessage(Response { "Your request #${creditObtainRequest.id} was written to DB. Thanks." })
 		.setOnCompleteAction {
 			creditObtainsRepo.save(creditObtainRequest)
-			sheetsAPI.writeToTable("default", creditObtainRequest.type, -1,
-				arrayOf(
-					creditObtainRequest.id,
-					LocalDate.now().toString(), //request.id	LocalDate.now()	user.name	customer.name
-					user.fullName!!,
-					customer!!.fullName,
-					customer!!.id, //customer.id	новое поле fb	select.amount	String	select.status.value	пустое поле
-					creditObtainRequest.fb,
-					"$" + DecimalFormat("#,###.##").format(creditObtainRequest.amount),
-					creditObtainRequest.type,
-					creditObtainRequest.status,
-					"",
-					creditObtainRequest.comment, //новое поле comment	customer.contact	что?
-					customer!!.info ?: "No info",
-					"",
-					"",
-					customer!!.creditLimit.toString()
+			launch {
+				sheetsAPI.writeToTable("default", creditObtainRequest.type, -1,
+					arrayOf(
+						creditObtainRequest.id,
+						LocalDate.now().toString(), //request.id	LocalDate.now()	user.name	customer.name
+						user.fullName!!,
+						customer!!.fullName,
+						customer!!.id, //customer.id	новое поле fb	select.amount	String	select.status.value	пустое поле
+						creditObtainRequest.fb,
+						"$" + DecimalFormat("#,###.##").format(creditObtainRequest.amount),
+						creditObtainRequest.type,
+						creditObtainRequest.status,
+						"",
+						creditObtainRequest.comment, //новое поле comment	customer.contact	что?
+						customer!!.info ?: "No info",
+						"",
+						"",
+						customer!!.creditLimit.toString()
+					)
 				)
-			)
-			val select = creditObtainRequest
-			sheetsAPI.writeToTable("default", "Requests", -1,
-				arrayOf(select.id,
-					LocalDate.now().toString(),
-					select.customer.id,
-					user.fullName!!,
-					select.customer.fullName,
-					select.customer.accountId ?: "No account ID",
-					select.fb,
-					"$" + DecimalFormat("#,###.##").format(creditObtainRequest.amount),
-					select.type,
-					select.status,
-					"", //Documents
-					select.customer.info ?: "No Info",
-					select.releaseId,
-					"",
-					"",
-					"",
-					select.comment
+				val select = creditObtainRequest
+				sheetsAPI.writeToTable("default", "Requests", -1,
+					arrayOf(select.id,
+						LocalDate.now().toString(),
+						select.customer.id,
+						user.fullName!!,
+						select.customer.fullName,
+						select.customer.accountId ?: "No account ID",
+						select.fb,
+						"$" + DecimalFormat("#,###.##").format(creditObtainRequest.amount),
+						select.type,
+						select.status,
+						"", //Documents
+						select.customer.info ?: "No Info",
+						select.releaseId,
+						"-",
+						"-",
+						"-",
+						select.comment
+					)
 				)
-			)
-			
-			/*
-			
-			 */
+			}
+			Notifier.notifyOnCreate(creditObtainRequest)
 		}
 	
 	private fun getCreditLimitIncreaseChat() = ChatBuilder(user).name("createRequest_increase")
@@ -185,17 +185,17 @@ class CreateRequestChat(val user: User) {
 					user.fullName!!,
 					customer.fullName,
 					customer.id,
-					"",
+					"-",
 					creditIncreaseRequest.type,
 					creditIncreaseRequest.status,
-					"",
+					"-",
 					"TODO documents",
 					creditIncreaseRequest.comment,
 					customer.info ?: "No info",
 					"$0",
 					"$" + DecimalFormat("#,###.##").format(creditIncreaseRequest.amount),
-					"",
-					"",
+					"-",
+					"-",
 					customer.creditLimit.toString()
 				)
 			)
@@ -213,14 +213,15 @@ class CreateRequestChat(val user: User) {
 					creditIncreaseRequest.status,
 					"", //Documents
 					creditIncreaseRequest.customer.info ?: "No Info",
-					"", //release ID
+					"-", //release ID
 					"$" + DecimalFormat("#,###.##").format(creditIncreaseRequest.amount),
-					"",
-					"",
+					"-",
+					"-",
 					creditIncreaseRequest.comment
 				)
 			)
 		}
+		Notifier.notifyOnCreate(creditIncreaseRequest)
 		return creditIncreaseRequest
 	}
 }

@@ -6,6 +6,7 @@ import com.bot.entity.requests.CreditRequest
 import com.bot.repo.UserFactory
 import com.bot.tgapi.Method
 import kotlinx.coroutines.experimental.launch
+import java.text.DecimalFormat
 import java.util.*
 
 object Notifier {
@@ -31,7 +32,10 @@ object Notifier {
 	}
 	
 	fun notifyOnCreate(request: CreditRequest) {
-	
+		UserFactory.findAll().filter { it.accessLevel >= 2 && it.id != request.creator }.forEach {
+			Method.sendMessage(it.id, "New request: ${request.type};\nCreator: ${request.creatorName()}\n" +
+				"Customer: ${request.customer.fullName}\nAmount: $${DecimalFormat("#,###.##").format(request.amount)}")
+		}
 	}
 	
 	fun notifyOnUpdate(request: CreditRequest) {
