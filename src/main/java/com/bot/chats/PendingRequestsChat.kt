@@ -15,6 +15,7 @@ import com.bot.repo.CreditObtainRepo
 import com.bot.repo.CustomerRepo
 import com.bot.tgapi.Method
 import com.bot.util.GSheetsAPI
+import kotlinx.coroutines.experimental.launch
 import java.text.DecimalFormat
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -87,23 +88,25 @@ class PendingRequestsChat(val user: User) {
 				} else {
 					select.approve(user, it.toDouble())
 					creditIncreaseRepo.save(select as CreditIncreaseRequest)
-					gSheetsAPI.updateCellsWhere(page = select.type, criteria = { it[0] == select.id }, updateFx = {
-						it[7] = select.status
-						it[12] = "$" + DecimalFormat("#,###.##").format(select.amount - select.customer.creditLimit)
-						it[13] = "$" + DecimalFormat("#,###.##").format(oldAmount)
-						it[14] = "$" + DecimalFormat("#,###.##").format(select.amount)
-						return@updateCellsWhere it
-					})
-					gSheetsAPI.updateCellsWhere(page = "Requests", criteria = { it[0] == select.id }, updateFx = {
-						it[5] = if (select.type == "New customer") "Set:${select.customer.accountId
-							?: "Failed to set ID?"}"
-						else select.customer.accountId ?: "Failed to get ID"
-						it[9] = select.status
-						it[15] = "$" + DecimalFormat("#,###.##").format(select.amount - select.customer.creditLimit)
-						it[13] = "$" + DecimalFormat("#,###.##").format(oldAmount)
-						it[14] = "$" + DecimalFormat("#,###.##").format(select.amount)
-						return@updateCellsWhere it
-					})
+					launch {
+						gSheetsAPI.updateCellsWhere(page = select.type, criteria = { it[0] == select.id }, updateFx = {
+							it[7] = select.status
+							it[12] = "$" + DecimalFormat("#,###.##").format(select.amount - select.customer.creditLimit)
+							it[13] = "$" + DecimalFormat("#,###.##").format(oldAmount)
+							it[14] = "$" + DecimalFormat("#,###.##").format(select.amount)
+							return@updateCellsWhere it
+						})
+						gSheetsAPI.updateCellsWhere(page = "Requests", criteria = { it[0] == select.id }, updateFx = {
+							it[5] = if (select.type == "New customer") "Set:${select.customer.accountId
+								?: "Failed to set ID?"}"
+							else select.customer.accountId ?: "Failed to get ID"
+							it[9] = select.status
+							it[15] = "$" + DecimalFormat("#,###.##").format(select.amount - select.customer.creditLimit)
+							it[13] = "$" + DecimalFormat("#,###.##").format(oldAmount)
+							it[14] = "$" + DecimalFormat("#,###.##").format(select.amount)
+							return@updateCellsWhere it
+						})
+					}
 					val customer = select.customer
 					customer.creditLimit = select.amount // TODO Migrate from here
 					customerRepo.save(customer)
@@ -132,12 +135,14 @@ class PendingRequestsChat(val user: User) {
 					select.releaseId = it
 					select.approve(user)
 					creditObtainsRepo.save(select)
-					gSheetsAPI.updateCellsWhere(page = "Requests", criteria = { it[0] == select.id }, updateFx = {
-						it[9] = select.status
-						it[12] = select.releaseId
-						it[14] = "$" + DecimalFormat("#,###.##").format(select.amount)
-						return@updateCellsWhere it
-					})
+					launch {
+						gSheetsAPI.updateCellsWhere(page = "Requests", criteria = { it[0] == select.id }, updateFx = {
+							it[7] = "$" + DecimalFormat("#,###.##").format(select.amount)
+							it[9] = select.status
+							it[12] = select.releaseId
+							return@updateCellsWhere it
+						})
+					}
 					Notifier.notifyOnUpdate(select)
 					return@setNextChatFunction BaseChats.hello(user)
 				}

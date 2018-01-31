@@ -53,7 +53,7 @@
   "createRequest.creditRelease.comment": "Add comment",
 
   //Limit increase
-  "createRequest.limitIncrease.amount": "Enter load amount, $",
+  "createRequest.limitIncrease.amount": "Enter credit limit amount, $",
   "createRequest.limitIncrease.comment": "Add comment",
 
   //Pending Requests
