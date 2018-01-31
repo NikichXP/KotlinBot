@@ -61,7 +61,7 @@ class CreateRequestChat(val user: User) {
 				}
 				return@setNextChatFunction getAction()
 			} else {
-				customerList = customerRepo.findByFullNameLowerCaseLike(it.toLowerCase())
+				customerList = customerRepo.findByFullNameLowerCaseLike(it.toLowerCase()).filter { it.accountId != null }.toMutableList()
 				customerRepo.findById(it).ifPresent { customerList.add(it) }
 				return@setNextChatFunction chooseClient()
 			}
@@ -121,16 +121,42 @@ class CreateRequestChat(val user: User) {
 					customer!!.fullName,
 					customer!!.id, //customer.id	новое поле fb	select.amount	String	select.status.value	пустое поле
 					creditObtainRequest.fb,
-					DecimalFormat("#,###.##").format(creditObtainRequest.amount),
+					"$" + DecimalFormat("#,###.##").format(creditObtainRequest.amount),
 					creditObtainRequest.type,
 					creditObtainRequest.status,
 					"",
 					creditObtainRequest.comment, //новое поле comment	customer.contact	что?
 					customer!!.info ?: "No info",
 					"",
+					"",
 					customer!!.creditLimit.toString()
 				)
 			)
+			val select = creditObtainRequest
+			sheetsAPI.writeToTable("default", "Requests", -1,
+				arrayOf(select.id,
+					LocalDate.now().toString(),
+					select.customer.id,
+					user.fullName!!,
+					select.customer.fullName,
+					select.customer.accountId ?: "No account ID",
+					select.fb,
+					"$" + DecimalFormat("#,###.##").format(creditObtainRequest.amount),
+					select.type,
+					select.status,
+					"", //Documents
+					select.customer.info ?: "No Info",
+					select.releaseId,
+					"$" + DecimalFormat("#,###.##").format(creditObtainRequest.amount),
+					"",
+					"",
+					select.comment
+				)
+			)
+			
+			/*
+			
+			 */
 		}
 	
 	private fun getCreditLimitIncreaseChat() = ChatBuilder(user).name("createRequest_increase")
@@ -165,8 +191,30 @@ class CreateRequestChat(val user: User) {
 				creditIncreaseRequest.comment,
 				customer.info ?: "No info",
 				"$0",
-				DecimalFormat("#,###.##").format(creditIncreaseRequest.amount),
+				"$" + DecimalFormat("#,###.##").format(creditIncreaseRequest.amount),
+				"",
+				"",
 				customer.creditLimit.toString()
+			)
+		)
+		
+		sheetsAPI.writeToTable("default", "Requests", -1,
+			arrayOf(creditIncreaseRequest.id,
+				LocalDate.now().toString(),
+				creditIncreaseRequest.customer.id,
+				user.fullName!!,
+				creditIncreaseRequest.customer.fullName,
+				creditIncreaseRequest.customer.accountId ?: "No account ID",
+				"-", //FB
+				"$" + DecimalFormat("#,###.##").format(creditIncreaseRequest.amount),
+				creditIncreaseRequest.type,
+				creditIncreaseRequest.status,
+				"", //Documents
+				creditIncreaseRequest.customer.info ?: "No Info",
+				"", //release ID
+				"$" + DecimalFormat("#,###.##").format(creditIncreaseRequest.amount),
+				"",
+				creditIncreaseRequest.comment
 			)
 		)
 		return creditIncreaseRequest

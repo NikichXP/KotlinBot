@@ -15,6 +15,7 @@ import com.nikichxp.util.Json
 import org.springframework.beans.factory.annotation.Autowired
 import org.apache.http.impl.client.HttpClients
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
+import java.nio.charset.Charset
 
 
 //TODO Cleanup response logging
@@ -84,10 +85,10 @@ class GSheetsAPI
 	 * @param data    all the rows
 	 */
 	fun writeToTable(sheetId: String, page: String, row: Int, data: Array<String>) {
-		val row_ = if (row < 0) getFirstFreeLine(if (sheetId == "default") this.sheetId else sheetId, page) else row
+		val rowX = if (row < 0) getFirstFreeLine(if (sheetId == "default") this.sheetId else sheetId, page) else row
 		writeToTable(if (sheetId == "default") this.sheetId else sheetId,
-			page + "!" + ROWSTART + row_ + ":" + (ROWSTART.toInt() + data.size - 1).toChar() + row_,
-			arrayOf(data as Array<String>))
+			page + "!" + ROWSTART + rowX + ":" + (ROWSTART.toInt() + data.size - 1).toChar() + rowX,
+			arrayOf(data))
 	}
 	
 	@Synchronized
@@ -109,7 +110,7 @@ class GSheetsAPI
 		dataMap.put("values", data)
 		
 		map.put("data", dataMap)
-		val entity = HttpEntity(gson.toJson(map), headers)
+		val entity = HttpEntity(gson.toJson(map).toByteArray(Charset.forName("UTF-8")), headers)
 		
 		val response = restTemplate.postForEntity(
 			"https://sheets.googleapis.com/v4/spreadsheets/$id/values:batchUpdate" +

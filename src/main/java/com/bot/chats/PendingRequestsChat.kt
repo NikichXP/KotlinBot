@@ -94,6 +94,16 @@ class PendingRequestsChat(val user: User) {
 						it[14] = "$" + DecimalFormat("#,###.##").format(select.amount)
 						return@updateCellsWhere it
 					})
+					gSheetsAPI.updateCellsWhere(page = "Requests", criteria = { it[0] == select.id }, updateFx = {
+						it[5] = if (select.type == "New customer") "Set:${select.customer.accountId
+							?: "Failed to set ID?"}"
+						else select.customer.accountId ?: "Failed to get ID"
+						it[9] = select.status
+						it[15] = "$" + DecimalFormat("#,###.##").format(select.amount - select.customer.creditLimit)
+						it[13] = "$" + DecimalFormat("#,###.##").format(oldAmount)
+						it[14] = "$" + DecimalFormat("#,###.##").format(select.amount)
+						return@updateCellsWhere it
+					})
 					val customer = select.customer
 					customer.creditLimit = select.amount // TODO Migrate from here
 					customerRepo.save(customer)
@@ -123,9 +133,9 @@ class PendingRequestsChat(val user: User) {
 					select.approve(user)
 					creditObtainsRepo.save(select)
 					gSheetsAPI.updateCellsWhere(page = "Requests", criteria = { it[0] == select.id }, updateFx = {
-						it[6] = DecimalFormat("#,###.##").format(select.amount)
-						it[8] = select.status
+						it[9] = select.status
 						it[12] = select.releaseId
+						it[14] = "$" + DecimalFormat("#,###.##").format(select.amount)
 						return@updateCellsWhere it
 					})
 					Notifier.notifyOnUpdate(select)

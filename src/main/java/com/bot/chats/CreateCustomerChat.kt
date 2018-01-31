@@ -71,6 +71,7 @@ class CreateCustomerChat(val user: User) {
 					sheetsAPI.writeToTable("default", "CustomerRequests", -1, arrayOf(
 						LocalDate.now().toString(), customer.id, customer.fullName, customer.address, customer.agent,
 						customer.contactData ?: "", customer.info ?: ""))
+					
 				}
 				if (limit > 0) {
 					launch {
