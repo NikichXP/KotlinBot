@@ -6,25 +6,27 @@ import com.bot.logic.TextResolver
 import com.bot.repo.CustomerRepo
 import com.bot.tgapi.Method
 import com.bot.util.GSheetsAPI
-import com.nikichxp.util.Async.async
 import kotlinx.coroutines.experimental.launch
 import java.time.LocalDate
 
-class CreateCustomerChat(val user: User) {
+class CreateCustomerChat(user: User) : ChatParent(user) {
 	
 	private val customerRepo = Ctx.get(CustomerRepo::class.java)
 	private val sheetsAPI = Ctx.get(GSheetsAPI::class.java)
 	private var customer: Customer = Customer(fullName = "", agent = user.id)
 	
-	fun getChat() = ChatBuilder(user).name("createCustomer_intro")
+	fun getChat(): ChatBuilder = ChatBuilder(user).name("createCustomer_intro")
 		.setNextChatFunction(
 			Response(user.id, "customerCreate.hello")
-				.withCustomKeyboard(arrayOf("Create customer", "Import customer")),
+				.withCustomKeyboard(arrayOf("Create New Customer", "Add Existing Customer")),
 			{
-				return@setNextChatFunction if (it == "Create customer") {
-					createUser()
-				} else {
-					importUser()
+				return@setNextChatFunction when (it) {
+					"Create New Customer"   -> createUser()
+					"Add Existing Customer" -> importUser()
+					else                    -> {
+						sendMessage("Unexpected chat type response")
+						getChat()
+					}
 				}
 			}
 		)
@@ -62,7 +64,7 @@ class CreateCustomerChat(val user: User) {
 				try {
 					limit = it.toDouble()
 				} catch (e: Exception) {
-					Method.sendMessage(user.id, "customerCreate.create.creditLimit.request.error.parse")
+					sendMessage("customerCreate.create.creditLimit.request.error.parse")
 				}
 			})
 			.setOnCompleteAction {
@@ -76,7 +78,7 @@ class CreateCustomerChat(val user: User) {
 				if (limit > 0) {
 					launch {
 						val result = CreateRequestChat(user).createLimitEntry(customer, "New customer", "Created user", limit)
-						Method.sendMessage(user.id, "Limit increase request created successfully, " +
+						sendMessage("Limit increase request created successfully, " +
 							"customer id: ${customer.id}, request id: ${result.id}")
 					}
 				}

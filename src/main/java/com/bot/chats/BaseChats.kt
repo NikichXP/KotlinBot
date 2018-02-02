@@ -37,12 +37,13 @@ object BaseChats {
 				}
 			})
 	
-	fun test(user: User): ChatBuilder =
-		ChatBuilder(user)
-			.setOnCompleteAction {
-				gSheetsAPI.writeToTable(gSheetsAPI.sheetId,
-					"Test", gSheetsAPI.getFirstFreeLine(gSheetsAPI.sheetId, "Test"),
-					arrayOf("A", "B", "C", "D"))
-			}
+	fun test(user: User): ChatBuilder {
+		val list = (-1..5).toList()
+		return ListChat<Int>(user, list).selectFunction {
+			println("Selected: " + it)
+			return@selectFunction BaseChats.hello(user)
+		}.printFunction { "Num ${it}" }.getChat()
+	}
+	
 	
 }

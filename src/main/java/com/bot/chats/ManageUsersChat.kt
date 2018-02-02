@@ -9,7 +9,7 @@ import com.bot.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.streams.toList
 
-class ManageUsersChat(val user: User) {
+class ManageUsersChat(user: User): ChatParent(user) {
 	
 	lateinit var userList: List<User>
 	

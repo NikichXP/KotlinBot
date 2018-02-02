@@ -19,7 +19,7 @@ import kotlinx.coroutines.experimental.launch
 import java.text.DecimalFormat
 import java.util.concurrent.atomic.AtomicInteger
 
-class PendingRequestsChat(val user: User) {
+class PendingRequestsChat(user: User): ChatParent(user) {
 	
 	private val creditObtainsRepo = Ctx.get(CreditObtainRepo::class.java)
 	private val creditIncreaseRepo = Ctx.get(CreditIncreaseRepo::class.java)
@@ -67,7 +67,7 @@ class PendingRequestsChat(val user: User) {
 							select.amount = it.toDouble()
 							return@setNextChatFunction getCorrespondingChat(select)
 						}
-						Method.sendMessage(user.id, "pendingRequest.error.unknownAction")
+						sendMessage("pendingRequest.error.unknownAction")
 						return@setNextChatFunction getChat()
 					}
 				}

@@ -4,7 +4,7 @@ import com.bot.entity.*
 import com.bot.repo.UserFactory
 import com.bot.tgapi.Method
 
-class RegisterChat(var user: User) {
+class RegisterChat(user: User): ChatParent(user) {
 	
 	fun getChat(): ChatBuilder = ChatBuilder(user).name("register_hello")
 		.setNextChatFunction(Response(user, "register.hello").withCustomKeyboard(arrayOf("Start")), {
@@ -22,7 +22,7 @@ class RegisterChat(var user: User) {
 	fun getName(): ChatBuilder = ChatBuilder(user).name("register_name")
 		.setNextChatFunction("register.fullname", {
 			if (it.split(" ").size < 2) {
-				Method.sendMessage(Response(user, "register.fullname.error.twoWordsMinRequirement"))
+				sendMessage("register.fullname.error.twoWordsMinRequirement")
 				return@setNextChatFunction getChat()
 			} else {
 				user.fullName = it
@@ -34,7 +34,7 @@ class RegisterChat(var user: User) {
 	fun getMail(): ChatBuilder = ChatBuilder(user).name("register_mail")
 		.setNextChatFunction("register.email", {
 			if (!it.contains("@")) {
-				Method.sendMessage(Response(user, "register.email.error.check"))
+				sendMessage("register.email.error.check")
 				return@setNextChatFunction getMail()
 			} else {
 				user.email = it

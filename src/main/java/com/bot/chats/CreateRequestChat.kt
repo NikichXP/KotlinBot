@@ -18,7 +18,7 @@ import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
 import java.util.concurrent.atomic.AtomicInteger
 
-class CreateRequestChat(val user: User) {
+class CreateRequestChat(user: User): ChatParent(user) {
 	
 	private val customerRepo = Ctx.get(CustomerRepo::class.java)
 	private val creditObtainsRepo = Ctx.get(CreditObtainRepo::class.java)

@@ -11,7 +11,7 @@ import com.bot.repo.CreditIncreaseRepo
 import com.bot.repo.CreditObtainRepo
 import java.util.concurrent.atomic.AtomicInteger
 
-class MyRequestsChat(val user: User) {
+class MyRequestsChat(user: User) : ChatParent(user) {
 	
 	private val creditObtainsRepo = Ctx.get(CreditObtainRepo::class.java)
 	private val creditIncreaseRepo = Ctx.get(CreditIncreaseRepo::class.java)
@@ -20,33 +20,31 @@ class MyRequestsChat(val user: User) {
 	
 	fun getChat(): ChatBuilder {
 		val int = AtomicInteger(0)
-		return ChatBuilder(user).name("myRequests_home")
-			.setNextChatFunction(Response {
-				requestList = mutableListOf()
-				requestList.addAll(creditObtainsRepo.findByCreator(user.id))
-				requestList.addAll(creditIncreaseRepo.findByCreator(user.id))
-				
-				getText("myRequests.selectRequest") + "\n\n" +
-					requestList.stream().map {
-						"/${int.incrementAndGet()} -- ${it.customer.fullName} ::" +
-							" ${it.type} :: ${it.amount} :: ${it.status}"
-					}
-						.reduce { a, b -> "$a\n$b" }.orElse("myRequests.selectRequest.error.empty")
-			}, {
-				return@setNextChatFunction when {
-					it == "/home"            -> BaseChats.hello(user)
-					it.startsWith("/")       -> {
-						select = requestList[it.substring(1).toInt() - 1]
-						modifyRequest()
-					}
-					it.matches(Regex("\\d")) -> {
-						select = requestList[it.toInt() - 1]
-						modifyRequest()
-					}
-					else                     -> BaseChats.hello(user)
-				}
-			}) // -1 cause starts counting with 1
 		
+		requestList = mutableListOf()
+		requestList.addAll(creditObtainsRepo.findByCreator(user.id))
+		requestList.addAll(creditIncreaseRepo.findByCreator(user.id))
+		requestList.sortWith(Comparator { e1, e2 -> e1.opened.compareTo(e2.opened) })
+		
+		return ListChat(user, requestList).also {
+			it.headText = getText("myRequests.selectRequest") + "\n\n"
+			it.printFunction {
+				"${it.customer.fullName} :: ${it.type} :: ${it.amount} :: ${it.status}"
+			}
+			it.selectFunction {
+				select = it
+				return@selectFunction modifyRequest()
+			}
+			it.addCustomButton("On/off approved", {
+				if (it.customFlags["hidden"] == null) {
+					it.customFlags["hidden"] = true
+					it.reset(requestList.filter { it.status == Status.PENDING.value })
+				} else {
+					it.customFlags.remove("hidden")
+					it.reset(requestList)
+				}
+			})
+		}.getChat()
 	}
 	
 	fun modifyRequest(): ChatBuilder {
