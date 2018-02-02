@@ -27,7 +27,7 @@ class MyRequestsChat(user: User) : ChatParent(user) {
 		requestList.sortWith(Comparator { e1, e2 -> e1.opened.compareTo(e2.opened) })
 		
 		return ListChat(user, requestList).also {
-			it.headText = getText("myRequests.selectRequest") + "\n\n"
+			it.headText = getText("myRequests.selectRequest") + "\n"
 			it.printFunction {
 				"${it.customer.fullName} :: ${it.type} :: ${it.amount} :: ${it.status}"
 			}

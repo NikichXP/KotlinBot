@@ -48,6 +48,7 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 					.printFunction {
 						"${it.fullName} (${it.accountId ?: "Pending"})"
 					}
+					.also { it.headText = "Select client or type ID or fragment of other's client name for new search." }
 					.addCustomChatButton("Create user", CreateCustomerChat(user).getChat())
 					.elseFunction {
 						setCustomerList(it)
