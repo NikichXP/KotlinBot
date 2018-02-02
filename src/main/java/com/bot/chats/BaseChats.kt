@@ -31,7 +31,7 @@ object BaseChats {
 					it == getText("myRequests")                              -> MyRequestsChat(user).getChat()
 					it == getText("pendingRequests") && user.accessLevel > 1 -> PendingRequestsChat(user).getChat()
 					it == getText("manageUsers") && user.accessLevel > 2     -> ManageUsersChat(user).getChat()
-					it == getText("pendingUsers") && user.accessLevel > 2    -> ManageUsersChat(user).getChat()
+					it == getText("pendingUsers") && user.accessLevel > 2    -> ManageUsersChat(user).getChat(User.Companion.Type.NONAME)
 					it.contains("test")                                      -> test(user)
 					else                                                     -> hello(user)
 				}

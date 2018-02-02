@@ -10,17 +10,15 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.streams.toList
 
 class ManageUsersChat(user: User) : ChatParent(user) {
-	
-	lateinit var userList: List<User>
-	
-	fun getChat() = ListChat(user, UserFactory.findAll())
+		
+	fun getChat(startType: User.Companion.Type? = null) = ListChat(user, if (startType != null) UserFactory.findByType(startType) else UserFactory.findAll())
 		.also { it.headText = "Select user to perform actions" }
 		.printFunction { "${it.fullName} -- ${it.type.name}" }
 		.addCustomButton("All", { it.reset(UserFactory.findAll()) })
-		.addCustomButton("Pending", { it.reset(UserFactory.findAll().filter { it.type == User.Companion.Type.NONAME }) })
-		.addCustomButton("Broker", { it.reset(UserFactory.findAll().filter { it.type == User.Companion.Type.BROKER }) })
-		.addCustomButton("Credit", { it.reset(UserFactory.findAll().filter { it.type == User.Companion.Type.CREDIT }) })
-		.addCustomButton("Admin", { it.reset(UserFactory.findAll().filter { it.type == User.Companion.Type.ADMIN }) })
+		.addCustomButton("Pending", { it.reset(UserFactory.findByType(User.Companion.Type.NONAME)) })
+		.addCustomButton("Broker", { it.reset(UserFactory.findByType(User.Companion.Type.BROKER)) })
+		.addCustomButton("Credit", { it.reset(UserFactory.findByType(User.Companion.Type.CREDIT)) })
+		.addCustomButton("Admin", { it.reset(UserFactory.findByType(User.Companion.Type.ADMIN)) })
 		.selectFunction { userSelection(it) }
 		.getChat()
 	

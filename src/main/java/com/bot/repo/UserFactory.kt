@@ -46,4 +46,6 @@ object UserFactory {
 		return userMap[id]!!
 	}
 	
+	fun findByType(startType: User.Companion.Type): List<User> = findAll().filter { it.type == startType }
+	
 }
