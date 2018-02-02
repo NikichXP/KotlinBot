@@ -19,17 +19,60 @@ import kotlinx.coroutines.experimental.launch
 import java.text.DecimalFormat
 import java.util.concurrent.atomic.AtomicInteger
 
-class PendingRequestsChat(user: User): ChatParent(user) {
+class PendingRequestsChat(user: User) : ChatParent(user) {
 	
 	private val creditObtainsRepo = Ctx.get(CreditObtainRepo::class.java)
 	private val creditIncreaseRepo = Ctx.get(CreditIncreaseRepo::class.java)
 	private val customerRepo = Ctx.get(CustomerRepo::class.java)
 	private val gSheetsAPI = Ctx.get(GSheetsAPI::class.java)
-	private lateinit var requestList: MutableList<CreditRequest>
+	private var requestList = mutableListOf<CreditRequest>()
 	//	private val workingLock = ConcurrentSkipListSet<String>() // TODO Fix concurrent issues
 	private lateinit var select: CreditRequest
 	
 	fun getChat(): ChatBuilder {
+		requestList.also {
+			it.addAll(creditObtainsRepo.findByStatus(Status.PENDING.value))
+			it.addAll(creditIncreaseRepo.findByStatus(Status.PENDING.value))
+		}
+		return ListChat(user, requestList)
+			.printFunction {
+				"${it.customer.fullName} (${it.customer.accountId
+					?: "Pending"}) :: ${it.type} :: ${DecimalFormat("#,###.##").format(it.amount)}"
+			}
+			.selectFunction { viewRequest(it) }
+			.getChat()
+	}
+	
+	private fun viewRequest(request: CreditRequest): ChatBuilder {
+		select = request
+		return ChatBuilder(user)
+			.setNextChatFunction(
+				Response { select.getText() + TextResolver.getText("pendingRequest.actionSelect") }
+					.withCustomKeyboard("Cancel", "Approve", "Decline", "Home"),
+				{
+					when (it.filter { it != '/' }.toLowerCase()) { // TODO Change credit limit for customer
+						"cancel"  -> return@setNextChatFunction getChat()
+						"approve" -> {
+							return@setNextChatFunction if (request is CreditObtainRequest) approveRelease() else approveCreditLimit()
+						}
+						"decline" -> {
+							select.status = Status.DECLINED.value
+							select.approver = user.id
+							Notifier.notifyOnUpdate(select)
+						}
+						"home"    -> {
+						}
+						else      -> {
+							sendMessage("pendingRequest.error.unknownAction")
+							return@setNextChatFunction getChat()
+						}
+					}
+					return@setNextChatFunction BaseChats.hello(user)
+				}
+			)
+	}
+	
+	fun getOldChat(): ChatBuilder {
 		val int = AtomicInteger(0)
 		return ChatBuilder(user).name("pendingRequests_home")
 			.then(Response {

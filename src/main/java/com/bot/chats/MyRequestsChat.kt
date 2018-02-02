@@ -54,7 +54,7 @@ class MyRequestsChat(user: User) : ChatParent(user) {
 			}, {
 				return@setNextChatFunction when (it) {
 					"/back"    -> this.getChat()
-					"/decline" -> {
+					"/decline", "/cancel" -> {
 						if (select.status != Status.APPROVED.value) {
 							creditIncreaseRepo.deleteById(select.id)
 							creditObtainsRepo.deleteById(select.id)

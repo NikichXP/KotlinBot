@@ -18,7 +18,7 @@ class Response(var chat_id: String?, text: String) {
 	constructor(user: User, text: String) : this(user.id, text)
 	constructor(user: User) : this(user.id, "")
 	constructor(text: String, keys: Array<String>) : this(null, text) {
-		withCustomKeyboard(keys)
+		withCustomKeyboard(*keys)
 	}
 	
 	constructor(text: String, keys: Array<Array<String>>) : this(null, text) {
@@ -41,8 +41,8 @@ class Response(var chat_id: String?, text: String) {
 		this.text = text
 	}
 	
-	fun withCustomKeyboard(buttons: Array<String>): Response {
-		this.reply_markup = ReplyKeyboardMarkup(buttons)
+	fun withCustomKeyboard(vararg buttons: String): Response {
+		this.reply_markup = ReplyKeyboardMarkup(buttons as Array<String>)
 		return this
 	}
 	

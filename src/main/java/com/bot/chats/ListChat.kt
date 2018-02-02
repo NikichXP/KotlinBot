@@ -11,7 +11,7 @@ class ListChat<T>(user: User) : ChatParent(user) {
 	var pageSize: Int = 10
 	var fixedPageSize: Int = 10
 	var printFx: (T) -> String = { it.toString() }
-	var customButtonsMap = HashMap<String, (() -> Unit)>()
+	var customButtonsMap = HashMap<String, ((ListChat<T>) -> Unit)>()
 	var customChatButtons = HashMap<String, ChatBuilder>()
 	var backChat: ChatBuilder = BaseChats.hello(user)
 	var selectFunction: (T) -> ChatBuilder = { BaseChats.hello(user) }
@@ -28,7 +28,7 @@ class ListChat<T>(user: User) : ChatParent(user) {
 		this.list.addAll(miniList)
 	}
 	
-	fun addCustomButton(name: String, action: () -> Unit) = also { this.customButtonsMap[name] = action }
+	fun addCustomButton(name: String, action: (ListChat<T>) -> Unit) = also { this.customButtonsMap[name] = action }
 	fun addCustomChatButton(name: String, chat: ChatBuilder) = also { this.customChatButtons[name] = chat }
 	fun pageSize(pageSize: Int) = also {
 		this.pageSize = pageSize
@@ -59,7 +59,7 @@ class ListChat<T>(user: User) : ChatParent(user) {
 					.withCustomKeyboard(arraySelection(list.drop(skip).take(pageSize).count()))
 				, {
 				if (customButtonsMap.containsKey(it)) {
-					customButtonsMap[it]!!.invoke()
+					customButtonsMap[it]!!.invoke(this)
 					return@setNextChatFunction getChat(0)
 				}
 				return@setNextChatFunction when (it) {
@@ -78,9 +78,15 @@ class ListChat<T>(user: User) : ChatParent(user) {
 	
 	private fun arraySelection(count: Int): Array<Array<String>> {
 		val line1 = (1..count).map { it.toString() }.toTypedArray()
-		val line2 = arrayOf("<<", "Home", "Back") + customButtonsMap.keys.toTypedArray() +
-			customChatButtons.keys.toTypedArray() + arrayOf(">>")
-		return arrayOf(line1, line2)
+		if ((customButtonsMap.size + customChatButtons.size) < 5) {
+			val line2 = arrayOf("<<", "Home", "Back") + customButtonsMap.keys.toTypedArray() +
+				customChatButtons.keys.toTypedArray() + arrayOf(">>")
+			return arrayOf(line1, line2)
+		} else {
+			val line2 = arrayOf("<<", "Home", "Back", ">>")
+			val line3 = customButtonsMap.keys.toTypedArray() + customChatButtons.keys.toTypedArray()
+			return arrayOf(line1, line2, line3)
+		}
 	}
 	
 }

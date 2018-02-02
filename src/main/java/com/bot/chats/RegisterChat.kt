@@ -4,10 +4,10 @@ import com.bot.entity.*
 import com.bot.repo.UserFactory
 import com.bot.tgapi.Method
 
-class RegisterChat(user: User): ChatParent(user) {
+class RegisterChat(user: User) : ChatParent(user) {
 	
 	fun getChat(): ChatBuilder = ChatBuilder(user).name("register_hello")
-		.setNextChatFunction(Response(user, "register.hello").withCustomKeyboard(arrayOf("Start")), {
+		.setNextChatFunction(Response(user, "register.hello").withCustomKeyboard("Start"), {
 			return@setNextChatFunction if (it != "Start") {
 				getChat()
 			} else {
@@ -46,9 +46,7 @@ class RegisterChat(user: User): ChatParent(user) {
 	fun getApprove(): ChatBuilder = ChatBuilder(user).name("register_check")
 		.setNextChatFunction(Response(user, "Wait for admin to approve you. Your name and email:\n" +
 			"${user.fullName}\n${user.email}\nYou can edit this data")
-			.withCustomKeyboard(
-				arrayOf("Edit name", "Edit mail", "Check")
-			), {
+			.withCustomKeyboard("Edit name", "Edit mail", "Check"), {
 			when (it) {
 				"Edit name" -> return@setNextChatFunction getName()
 				"Edit mail" -> return@setNextChatFunction getMail()

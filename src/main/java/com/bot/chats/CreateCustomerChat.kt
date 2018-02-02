@@ -18,7 +18,7 @@ class CreateCustomerChat(user: User) : ChatParent(user) {
 	fun getChat(): ChatBuilder = ChatBuilder(user).name("createCustomer_intro")
 		.setNextChatFunction(
 			Response(user.id, "customerCreate.hello")
-				.withCustomKeyboard(arrayOf("Create New Customer", "Add Existing Customer")),
+				.withCustomKeyboard("Create New Customer", "Add Existing Customer"),
 			{
 				return@setNextChatFunction when (it) {
 					"Create New Customer"   -> createUser()

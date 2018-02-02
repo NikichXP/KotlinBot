@@ -67,7 +67,7 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 	
 	fun getAction() = ChatBuilder(user).name("createRequest_selectAction")
 		.setNextChatFunction(Response(user, "createRequest.search.getAction")
-			.withCustomKeyboard(arrayOf("Credit release", "Limit increase", "Cancel")),
+			.withCustomKeyboard("Credit release", "Limit increase", "Cancel"),
 			{
 				return@setNextChatFunction when {
 					it == "Credit release" -> getCreditReleaseChat()
@@ -102,7 +102,7 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 				}
 			}
 		})
-		.then(Response(user.id, "createRequest.creditRelease.bco").withCustomKeyboard(arrayOf("BCO", "Carrier")), {
+		.then(Response(user.id, "createRequest.creditRelease.bco").withCustomKeyboard("BCO", "Carrier"), {
 			creditObtainRequest.bco = it.contains("bco", true)
 		})
 		.then("createRequest.creditRelease.fb", { creditObtainRequest.fb = it })
@@ -220,12 +220,3 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 		return creditIncreaseRequest
 	}
 }
-
-/*
-
-TODO Что делать дальше:
-1. Придумать что то вроде checkError-функции, или возможности для передачи в качестве аргумента функции проверки, которая
-будет возвращать бульку и прописать в чате onErrorFunction/onErrorText
-
-
- */
