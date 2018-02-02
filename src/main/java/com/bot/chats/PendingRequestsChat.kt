@@ -39,7 +39,7 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 				"${it.customer.fullName} (${it.customer.accountId
 					?: "Pending"}) :: ${it.type} :: ${DecimalFormat("#,###.##").format(it.amount)}"
 			}
-			.also { it.headText = "Select request or navigate to other pages" }
+			.also { it.headText = "Select request" }
 			.selectFunction { viewRequest(it) }
 			.getChat()
 	}
