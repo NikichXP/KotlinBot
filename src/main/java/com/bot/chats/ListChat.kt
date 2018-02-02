@@ -12,11 +12,13 @@ class ListChat<T>(user: User) : ChatParent(user) {
 	var fixedPageSize: Int = 10
 	var printFx: (T) -> String = { it.toString() }
 	var customButtonsMap = HashMap<String, (() -> Unit)>()
+	var customChatButtons = HashMap<String, ChatBuilder>()
 	var backChat: ChatBuilder = BaseChats.hello(user)
 	var selectFunction: (T) -> ChatBuilder = { BaseChats.hello(user) }
 	var headText = ""
 	var tailText = ""
 	var customFlags = HashMap<String, Any>()
+	var elseFunction: (String) -> ChatBuilder = { getChat() }
 	
 	constructor(user: User, list: List<T>) : this(user) {
 		this.list = list.toMutableList()
@@ -27,6 +29,7 @@ class ListChat<T>(user: User) : ChatParent(user) {
 	}
 	
 	fun addCustomButton(name: String, action: () -> Unit) = also { this.customButtonsMap[name] = action }
+	fun addCustomChatButton(name: String, chat: ChatBuilder) = also { this.customChatButtons[name] = chat }
 	fun pageSize(pageSize: Int) = also {
 		this.pageSize = pageSize
 		this.fixedPageSize = pageSize
@@ -35,6 +38,7 @@ class ListChat<T>(user: User) : ChatParent(user) {
 	fun printFunction(printFunction: (T) -> String) = also { this.printFx = printFunction }
 	fun selectFunction(chat: (T) -> ChatBuilder) = also { this.selectFunction = chat }
 	fun backChat(chat: ChatBuilder) = also { this.backChat = chat }
+	fun elseFunction(inputHandler: (String) -> ChatBuilder) = also { this.elseFunction = inputHandler }
 	fun reset(list: List<T>) = also {
 		this.list = list.toMutableList()
 		this.pageSize = fixedPageSize
@@ -64,8 +68,9 @@ class ListChat<T>(user: User) : ChatParent(user) {
 					"Home"    -> BaseChats.hello(user)
 					"Back"    -> backChat
 					else      -> when {
-						it.toIntOrNull() != null -> selectFunction.invoke(list[it.toInt() + skip - 1])
-						else                     -> getChat(skip)
+						it.toIntOrNull() != null      -> selectFunction.invoke(list[it.toInt() + skip - 1])
+						customChatButtons[it] != null -> customChatButtons[it]!!
+						else                          -> elseFunction.invoke(it)
 					}
 				}
 			})
@@ -73,7 +78,8 @@ class ListChat<T>(user: User) : ChatParent(user) {
 	
 	private fun arraySelection(count: Int): Array<Array<String>> {
 		val line1 = (1..count).map { it.toString() }.toTypedArray()
-		val line2 = arrayOf("<<", "Home", "Back") + customButtonsMap.keys.toTypedArray() + arrayOf(">>")
+		val line2 = arrayOf("<<", "Home", "Back") + customButtonsMap.keys.toTypedArray() +
+			customChatButtons.keys.toTypedArray() + arrayOf(">>")
 		return arrayOf(line1, line2)
 	}
 	

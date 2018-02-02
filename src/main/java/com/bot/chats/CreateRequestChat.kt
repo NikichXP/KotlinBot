@@ -18,7 +18,7 @@ import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
 import java.util.concurrent.atomic.AtomicInteger
 
-class CreateRequestChat(user: User): ChatParent(user) {
+class CreateRequestChat(user: User) : ChatParent(user) {
 	
 	private val customerRepo = Ctx.get(CustomerRepo::class.java)
 	private val creditObtainsRepo = Ctx.get(CreditObtainRepo::class.java)
@@ -36,38 +36,33 @@ class CreateRequestChat(user: User): ChatParent(user) {
 	fun getChat(): ChatBuilder {
 		return ChatBuilder(user).name("createRequest_home")
 			.setNextChatFunction("createRequest.hello", {
-				customerList = customerRepo.findByFullNameLowerCaseLike(it.toLowerCase())
-				customerRepo.findById(it).ifPresent { customerList.add(it) }
-				customerList = customerList.filter { it.accountId != null }.toMutableList()
+				setCustomerList(it)
 				return@setNextChatFunction chooseClient()
 			})
 	}
 	
-	fun chooseClient(): ChatBuilder = ChatBuilder(user).name("createRequest_selectClient")
-		.setNextChatFunction(Response {
-			val num = AtomicInteger(1)
-			
-			return@Response TextResolver.getText("createRequest.search.choose") + "\n" + customerList.stream()
-				.map { "/${num.getAndIncrement()} ${it.fullName} (${it.accountId ?: "Pending"}) " }
-				.reduce { a, b -> "$a\n$b" }.orElse("createRequest.search.empty")
-		}, {
-			if (it.startsWith("/")) {
-				try {
-					customer = customerList[it.replace("/", "").toInt() - 1]
-				} catch (e: Exception) {
-					return@setNextChatFunction when (it) {
-						"/cancel" -> BaseChats.hello(user)
-						"/create" -> CreateCustomerChat(user).getChat()
-						else      -> chooseClient()
+	fun chooseClient(): ChatBuilder {
+		return ChatBuilder(user).name("createRequest_chooseClient")
+			.setNextChatFunction {
+				return@setNextChatFunction ListChat(user, customerList)
+					.printFunction {
+						"${it.fullName} (${it.accountId ?: "Pending"})"
 					}
-				}
-				return@setNextChatFunction getAction()
-			} else {
-				customerList = customerRepo.findByFullNameLowerCaseLike(it.toLowerCase()).filter { it.accountId != null }.toMutableList()
-				customerRepo.findById(it).ifPresent { customerList.add(it) }
-				return@setNextChatFunction chooseClient()
+					.addCustomChatButton("Create user", CreateCustomerChat(user).getChat())
+					.elseFunction {
+						setCustomerList(it)
+						return@elseFunction chooseClient()
+					}
+					.getChat()
 			}
-		})
+	}
+	
+	private fun setCustomerList(query: String) {
+		println("Query: ${query}")
+		customerList = customerRepo.findByFullNameLowerCaseLike(query.toLowerCase())
+		customerRepo.findById(query).ifPresent { customerList.add(it) }
+		customerList = customerList.filter { it.accountId != null }.toMutableList()
+	}
 	
 	
 	fun getAction() = ChatBuilder(user).name("createRequest_selectAction")
