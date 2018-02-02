@@ -48,6 +48,10 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 					.printFunction {
 						"${it.fullName} (${it.accountId ?: "Pending"})"
 					}
+					.selectFunction {
+						customer = it
+						return@selectFunction getAction()
+					}
 					.also { it.headText = "Select client or type ID or fragment of other's client name for new search." }
 					.addCustomChatButton("Create user", CreateCustomerChat(user).getChat())
 					.elseFunction {
@@ -59,7 +63,6 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 	}
 	
 	private fun setCustomerList(query: String) {
-		println("Query: ${query}")
 		customerList = customerRepo.findByFullNameLowerCaseLike(query.toLowerCase())
 		customerRepo.findById(query).ifPresent { customerList.add(it) }
 		customerList = customerList.filter { it.accountId != null }.toMutableList()

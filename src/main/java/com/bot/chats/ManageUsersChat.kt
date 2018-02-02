@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.streams.toList
 
 class ManageUsersChat(user: User) : ChatParent(user) {
-		
+	
 	fun getChat(startType: User.Companion.Type? = null) = ListChat(user, if (startType != null) UserFactory.findByType(startType) else UserFactory.findAll())
 		.also { it.headText = "Select user to perform actions" }
 		.printFunction { "${it.fullName} -- ${it.type.name}" }
