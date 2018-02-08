@@ -6,7 +6,7 @@ import java.util.concurrent.Semaphore
 
 class ChatBuilder(val user: User) {
 	
-	val actions = LinkedList<Pair<Response, (String) -> Unit>>()
+	val actions = LinkedList<ChatAction>()
 	var beforeExecution: (() -> Unit)? = null
 	var eachStepAction: (() -> Unit)? = null
 	var nextChatQuestion: Response? = null
@@ -19,13 +19,24 @@ class ChatBuilder(val user: User) {
 	val errorHandler: Pair<(Exception) -> Boolean, (String) -> ChatBuilder> = Pair({ e -> true },
 		{ string -> this.nextChatDeterminer.invoke(string) })
 	
-	fun then(text: String, action: (String) -> Unit) = also { actions.add(Pair(Response(user.id, text), action)) }
-	fun then(response: Response, action: (String) -> Unit) = also { actions.add(Pair(response, action)) }
+	fun then(text: String, action: (String) -> Unit) = also { actions.add(DefaultChatAction(Response(user.id, text), action)) }
+	fun then(response: Response, action: (String) -> Unit) = also { actions.add(DefaultChatAction(response.ensureUser(user.id), action)) }
+	fun thenIf(optional: () -> Boolean, text: String, action: (String) -> Unit) = also {
+		actions.add(
+			OptionalChatAction(optional, Response(user.id, text), action)
+		)
+	}
+	
+	fun thenIf(optional: () -> Boolean, response: Response, action: (String) -> Unit) = also {
+		actions.add(
+			OptionalChatAction(optional, response, action)
+		)
+	}
 	
 	fun beforeExecution(action: () -> Unit) = also { this.beforeExecution = action }
 	
 	fun setNextChatFunction(text: String, function: (String) -> ChatBuilder) = setNextChatFunction(function).also { nextChatQuestion = Response(user.id, text) }
-	fun setNextChatFunction(response: Response, function: (String) -> ChatBuilder) = setNextChatFunction(function).also { nextChatQuestion = response }
+	fun setNextChatFunction(response: Response, function: (String) -> ChatBuilder) = setNextChatFunction(function).also { nextChatQuestion = response.ensureUser(user.id) }
 	fun setNextChatFunction(responseFx: () -> String, function: (String) -> ChatBuilder) = setNextChatFunction(function).also { nextChatQuestion = Response(responseFx) }
 	fun setNextChatFunction(function: (String) -> ChatBuilder) = also { nextChatDeterminer = function }
 	
@@ -33,7 +44,7 @@ class ChatBuilder(val user: User) {
 	fun setAfterWorkAction(action: () -> Unit) = also { this.afterWorkAction = action }
 	
 	fun setOnCompleteAction(action: (() -> Unit)) = also { this.onCompleteAction = action }
-	fun setOnCompleteMessage(message: Response) = also { this.onCompleteMessage = message }
+	fun setOnCompleteMessage(message: Response) = also { this.onCompleteMessage = message.ensureUser(user.id) }
 	fun setOnCompleteMessage(message: String) = also { this.onCompleteMessage = Response(user, message) }
 	
 	fun name(name: String) = also { this.name = name }
@@ -42,12 +53,7 @@ class ChatBuilder(val user: User) {
 
 interface ChatAction {
 	
-	var lock: Semaphore
-	
-	fun handle(lock: Semaphore) {
-		this.lock = lock
-	}
-	
+	fun handle(lock: Semaphore)
 	fun action(text: String)
 	fun isCompleted(): Boolean
 	
@@ -55,11 +61,11 @@ interface ChatAction {
 
 class DefaultChatAction(var response: Response, var action: (String) -> Unit) : ChatAction {
 	
-	override lateinit var lock: Semaphore
 	private var isCompleted = false
 	
-	constructor(response: Response, action: (String) -> Unit, lock: Semaphore) : this(response, action) {
-		this.lock = lock
+	override fun handle(lock: Semaphore) {
+		response.send()
+		lock.acquire()
 	}
 	
 	override fun action(text: String) {
@@ -71,6 +77,32 @@ class DefaultChatAction(var response: Response, var action: (String) -> Unit) : 
 	
 }
 
-//class OptionalChatAction : ChatAction {
-//
-//}
+class OptionalChatAction(var workOrNot: () -> Boolean, var response: Response, var action: (String) -> Unit) : ChatAction {
+	
+	private var isCompleted: Boolean
+	private var isRequestSent: Boolean = false
+	
+	init {
+		isCompleted = !(workOrNot.invoke())
+	}
+	
+	override fun handle(lock: Semaphore) {
+		
+		if (workOrNot.invoke()) {
+			response.send()
+			isRequestSent = true
+			isCompleted = false
+			lock.acquire()
+		}
+	}
+	
+	override fun action(text: String) {
+		if (isRequestSent) {
+			this.action.invoke(text)
+		}
+		isCompleted = true
+	}
+	
+	override fun isCompleted() = isCompleted
+	
+}

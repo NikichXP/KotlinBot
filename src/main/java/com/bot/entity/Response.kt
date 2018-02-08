@@ -82,6 +82,7 @@ class Response(var chat_id: String?, text: String) {
 	fun toJson(): String {
 		if (lateinitFx != null) text = lateinitFx!!.invoke()
 		text = TextResolver.getText(text, false)
+		chat_id!!
 		return gson.toJson(this)
 	}
 	

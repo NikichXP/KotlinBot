@@ -144,10 +144,10 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 							it[5] = if (select.type == "New customer") "Set:${select.customer.accountId
 								?: "Failed to set ID?"}"
 							else select.customer.accountId ?: "Failed to get ID"
-							it[9] = select.status
-							it[15] = "$" + DecimalFormat("#,###.##").format(select.amount - select.customer.creditLimit)
-							it[13] = "$" + DecimalFormat("#,###.##").format(oldAmount)
-							it[14] = "$" + DecimalFormat("#,###.##").format(select.amount)
+							it[10] = select.status
+							it[16] = "$" + DecimalFormat("#,###.##").format(select.amount - select.customer.creditLimit)
+							it[14] = "$" + DecimalFormat("#,###.##").format(oldAmount)
+							it[15] = "$" + DecimalFormat("#,###.##").format(select.amount)
 							return@updateCellsWhere it
 						})
 					}
@@ -182,8 +182,8 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 					launch {
 						gSheetsAPI.updateCellsWhere(page = "Requests", criteria = { it[0] == select.id }, updateFx = {
 							it[7] = "$" + DecimalFormat("#,###.##").format(select.amount)
-							it[9] = select.status
-							it[12] = select.releaseId
+							it[10] = select.status
+							it[13] = select.releaseId
 							return@updateCellsWhere it
 						})
 					}

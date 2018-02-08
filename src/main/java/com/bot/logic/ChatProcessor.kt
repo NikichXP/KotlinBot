@@ -37,53 +37,34 @@ open class ChatProcessor(val user: User) {
 			Optional.of(chat).ifPresent {
 				chat.beforeExecution?.invoke()
 				try {
-					var selectedAction: Pair<Response, (String) -> Unit>
+					var selectedAction: ChatAction
 					var i = 0
 					while (i < chat.actions.size) {
 						if (i < 0) {
 							i = 0
 						}
-						
-						/*
-						
-						1. -home, -help, -back
-						^ message = ObjectObserver<String>("")
-						
-						2. -shitty
-						while (!selectedAction.over) {
-						
-						when (message) --- handle home/help/back
-						selectedAction.action(message)
-						
-						}
-						
-						
-						selectedAction = chat.actions[i]
-						selectedAction.handle(lock, message)
-						
-						 */
-						selectedAction = chat.actions[i]
-						sendMessage(selectedAction.first)
-						lock.acquire()
-						when (message) {
-							"/help", "/home" -> {
-								chat = BaseChats.hello(user)
-								return@ifPresent
-							}
-							"/back"          -> {
-								i -= 1
-							}
-							else             -> {
-								try {
-									selectedAction.second(message)
-									chat.eachStepAction?.invoke()
-								} catch (e: Exception) {
-									println("here!")
-									if (chat.errorHandler.first(e)) {
-										throw e
+						selectedAction = chat.actions[i++]
+						selectedAction.handle(lock)
+						while (!selectedAction.isCompleted()) {
+							when (message) {
+								"/help", "/home" -> {
+									chat = BaseChats.hello(user)
+									return@ifPresent
+								}
+								"/back"          -> {
+									i -= 2
+								}
+								else             -> {
+									try {
+										selectedAction.action(message)
+										chat.eachStepAction?.invoke()
+									} catch (e: Exception) {
+										println("here!")
+										if (chat.errorHandler.first(e)) {
+											throw e
+										}
 									}
 								}
-								i++
 							}
 						}
 					}

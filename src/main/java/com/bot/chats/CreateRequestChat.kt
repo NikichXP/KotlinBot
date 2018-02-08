@@ -16,6 +16,7 @@ import java.text.DecimalFormat
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 class CreateRequestChat(user: User) : ChatParent(user) {
@@ -80,84 +81,92 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 				}
 			})
 	
-	private fun getCreditReleaseChat() = ChatBuilder(user).name("createRequest_release")
-		.beforeExecution { creditObtainRequest = CreditObtainRequest(creator = user.id, customer = customer!!) }
-		.then("createRequest.creditRelease.amount", {
-			creditObtainRequest.amount = it.toDouble()
-		})
-		.then("createRequest.creditRelease.date", {
-			creditObtainRequest.pickupDate = when (if (it.startsWith("/")) it.substring(1) else it) {
-				"today"     -> LocalDate.now()
-				"tomorrow"  -> LocalDate.now().plusDays(1)
-				"monday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY))
-				"tuesday"   -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.TUESDAY))
-				"wednesday" -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY))
-				"thursday"  -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.THURSDAY))
-				"friday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.FRIDAY))
-				"saturday"  -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SATURDAY))
-				"sunday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY))
-				else        -> {
-					if (it.matches(Regex("\\d{1,2}/\\d{1,2}"))) {
-						LocalDate.now().withMonth(it.split("/")[0].toInt())
-							.withDayOfMonth(it.split("/")[1].toInt())
-					} else {
-						LocalDate.parse(it)
+	private fun getCreditReleaseChat(): ChatBuilder {
+		val isBco = AtomicBoolean(false)
+		return ChatBuilder(user).name("createRequest_release")
+			.beforeExecution { creditObtainRequest = CreditObtainRequest(creator = user.id, customer = customer!!) }
+			.then("createRequest.creditRelease.amount", {
+				creditObtainRequest.amount = it.toDouble()
+			})
+			.then("createRequest.creditRelease.date", {
+				creditObtainRequest.pickupDate = when (if (it.startsWith("/")) it.substring(1) else it) {
+					"today"     -> LocalDate.now()
+					"tomorrow"  -> LocalDate.now().plusDays(1)
+					"monday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY))
+					"tuesday"   -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.TUESDAY))
+					"wednesday" -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY))
+					"thursday"  -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.THURSDAY))
+					"friday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.FRIDAY))
+					"saturday"  -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SATURDAY))
+					"sunday"    -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY))
+					else        -> {
+						if (it.matches(Regex("\\d{1,2}/\\d{1,2}"))) {
+							LocalDate.now().withMonth(it.split("/")[0].toInt())
+								.withDayOfMonth(it.split("/")[1].toInt())
+						} else {
+							LocalDate.parse(it)
+						}
 					}
 				}
-			}
-		})
-		.then(Response(user.id, "createRequest.creditRelease.bco").withCustomKeyboard("BCO", "Carrier"), {
-			creditObtainRequest.bco = it.contains("bco", true)
-		})
-		.then("createRequest.creditRelease.fb", { creditObtainRequest.fb = it })
-		.then("createRequest.creditRelease.comment", { creditObtainRequest.comment = it })
-		.setOnCompleteMessage(Response { "Your request #${creditObtainRequest.id} was written to DB. Thanks." })
-		.setOnCompleteAction {
-			creditObtainsRepo.save(creditObtainRequest)
-			launch {
-				sheetsAPI.writeToTable("default", creditObtainRequest.type, -1,
-					arrayOf(
-						creditObtainRequest.id,
-						LocalDate.now().toString(), //request.id	LocalDate.now()	user.name	customer.name
-						user.fullName!!,
-						customer!!.fullName,
-						customer!!.id, //customer.id	новое поле fb	select.amount	String	select.status.value	пустое поле
-						creditObtainRequest.fb,
-						"$" + DecimalFormat("#,###.##").format(creditObtainRequest.amount),
-						creditObtainRequest.type,
-						creditObtainRequest.status,
-						"",
-						creditObtainRequest.comment, //новое поле comment	customer.contact	что?
-						customer!!.info ?: "No info",
-						"",
-						"",
-						customer!!.creditLimit.toString()
+			})
+			.then(Response(user.id, "createRequest.creditRelease.bco").withCustomKeyboard("BCO", "Carrier"), {
+				it.contains("bco", true).also {
+					isBco.set(it)
+					creditObtainRequest.bco = it
+				}
+			})
+			.thenIf({ isBco.get() }, "Enter truck #", { creditObtainRequest.truckId = it })
+			.then("createRequest.creditRelease.fb", { creditObtainRequest.fb = it })
+			.then("createRequest.creditRelease.comment", { creditObtainRequest.comment = it })
+			.setOnCompleteMessage(Response { "Your request #${creditObtainRequest.id} was written to DB. Thanks." })
+			.setOnCompleteAction {
+				creditObtainsRepo.save(creditObtainRequest)
+				launch {
+					sheetsAPI.writeToTable("default", creditObtainRequest.type, -1,
+						arrayOf(
+							creditObtainRequest.id,
+							LocalDate.now().toString(), //request.id	LocalDate.now()	user.name	customer.name
+							user.fullName!!,
+							customer!!.fullName,
+							customer!!.id, //customer.id	новое поле fb	select.amount	String	select.status.value	пустое поле
+							creditObtainRequest.fb,
+							"$" + DecimalFormat("#,###.##").format(creditObtainRequest.amount),
+							creditObtainRequest.type,
+							creditObtainRequest.status,
+							"",
+							creditObtainRequest.comment, //новое поле comment	customer.contact	что?
+							customer!!.info ?: "No info",
+							"",
+							"",
+							customer!!.creditLimit.toString()
+						)
 					)
-				)
-				val select = creditObtainRequest
-				sheetsAPI.writeToTable("default", "Requests", -1,
-					arrayOf(select.id,
-						LocalDate.now().toString(),
-						select.customer.id,
-						user.fullName!!,
-						select.customer.fullName,
-						select.customer.accountId ?: "No account ID",
-						select.fb,
-						"$" + DecimalFormat("#,###.##").format(creditObtainRequest.amount),
-						select.type,
-						select.status,
-						"", //Documents
-						select.customer.info ?: "No Info",
-						select.releaseId,
-						"-",
-						"-",
-						"-",
-						select.comment
+					val select = creditObtainRequest
+					sheetsAPI.writeToTable("default", "Requests", -1,
+						arrayOf(select.id,
+							LocalDate.now().toString(),
+							select.customer.id,
+							user.fullName!!,
+							select.customer.fullName,
+							select.customer.accountId ?: "No account ID",
+							select.fb,
+							select.truckId ?: "Carrier",
+							"$" + DecimalFormat("#,###.##").format(creditObtainRequest.amount),
+							select.type,
+							select.status,
+							"", //Documents
+							select.customer.info ?: "No Info",
+							select.releaseId,
+							"-",
+							"-",
+							"-",
+							select.comment
+						)
 					)
-				)
+				}
+				Notifier.notifyOnCreate(creditObtainRequest)
 			}
-			Notifier.notifyOnCreate(creditObtainRequest)
-		}
+	}
 	
 	private fun getCreditLimitIncreaseChat() = ChatBuilder(user).name("createRequest_increase")
 		.beforeExecution { creditIncreaseRequest = CreditIncreaseRequest(creator = user.id, customer = customer!!) }
@@ -207,6 +216,7 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 					creditIncreaseRequest.customer.fullName,
 					creditIncreaseRequest.customer.accountId ?: "No account ID",
 					"-", //FB
+					"-",
 					"-",
 					creditIncreaseRequest.type,
 					creditIncreaseRequest.status,
