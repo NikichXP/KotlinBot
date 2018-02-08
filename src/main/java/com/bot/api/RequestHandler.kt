@@ -18,8 +18,8 @@ class RequestHandler {
 	lateinit var parser: TelegramInputParser
 	
 	@RequestMapping("/")
-	fun listen(req: HttpServletRequest) {
-		var x = BufferedReader(InputStreamReader(req.inputStream, StandardCharsets.UTF_8))
+	fun listen(request: HttpServletRequest) {
+		var x = BufferedReader(InputStreamReader(request.inputStream, StandardCharsets.UTF_8))
 			.lines().reduce { s1, s2 -> s1 + s2 }.orElse("")
 		x = String(x.toByteArray(charset("ISO-8859-1")), Charset.forName("UTF-8"))
 		val sb = StringBuilder()
@@ -41,6 +41,5 @@ class RequestHandler {
 		} catch (e: Exception) {
 			println(sb.toString())
 		}
-		
 	}
 }

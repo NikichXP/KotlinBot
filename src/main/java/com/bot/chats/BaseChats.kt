@@ -40,7 +40,7 @@ object BaseChats {
 	fun test(user: User): ChatBuilder {
 		val list = (-1..5).toList()
 		return ListChat<Int>(user, list).selectFunction {
-			println("Selected: " + it)
+			println("Selected: $it")
 			return@selectFunction BaseChats.hello(user)
 		}.printFunction { "Num ${it}" }.getChat()
 	}

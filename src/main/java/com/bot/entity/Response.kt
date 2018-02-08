@@ -1,10 +1,7 @@
 package com.bot.entity
 
 import com.bot.logic.TextResolver
-import com.bot.tgapi.InlineKeyboardMarkup
-import com.bot.tgapi.ReplyKeyboardMarkup
-import com.bot.tgapi.ReplyKeyboardRemove
-import com.bot.tgapi.ReplyMarkup
+import com.bot.tgapi.*
 import com.google.gson.Gson
 import java.util.*
 
@@ -86,6 +83,10 @@ class Response(var chat_id: String?, text: String) {
 		if (lateinitFx != null) text = lateinitFx!!.invoke()
 		text = TextResolver.getText(text, false)
 		return gson.toJson(this)
+	}
+	
+	fun send() {
+		Method.sendMessage(this)
 	}
 	
 	fun ensureUser(chat_id: String): Response {

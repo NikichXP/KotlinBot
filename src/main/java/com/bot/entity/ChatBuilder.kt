@@ -2,6 +2,7 @@ package com.bot.entity
 
 import com.bot.chats.BaseChats
 import java.util.LinkedList
+import java.util.concurrent.Semaphore
 
 class ChatBuilder(val user: User) {
 	
@@ -36,4 +37,40 @@ class ChatBuilder(val user: User) {
 	fun setOnCompleteMessage(message: String) = also { this.onCompleteMessage = Response(user, message) }
 	
 	fun name(name: String) = also { this.name = name }
+	
 }
+
+interface ChatAction {
+	
+	var lock: Semaphore
+	
+	fun handle(lock: Semaphore) {
+		this.lock = lock
+	}
+	
+	fun action(text: String)
+	fun isCompleted(): Boolean
+	
+}
+
+class DefaultChatAction(var response: Response, var action: (String) -> Unit) : ChatAction {
+	
+	override lateinit var lock: Semaphore
+	private var isCompleted = false
+	
+	constructor(response: Response, action: (String) -> Unit, lock: Semaphore) : this(response, action) {
+		this.lock = lock
+	}
+	
+	override fun action(text: String) {
+		this.action.invoke(text)
+		isCompleted = true
+	}
+	
+	override fun isCompleted() = isCompleted
+	
+}
+
+//class OptionalChatAction : ChatAction {
+//
+//}

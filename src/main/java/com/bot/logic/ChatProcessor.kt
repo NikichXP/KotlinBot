@@ -4,6 +4,7 @@ import com.bot.chats.BaseChats
 import com.bot.chats.RegisterChat
 import com.bot.entity.*
 import com.bot.tgapi.Method
+import com.google.gson.Gson
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.launch
 import java.util.*
@@ -11,9 +12,10 @@ import java.util.concurrent.Semaphore
 
 open class ChatProcessor(val user: User) {
 	
-	var chat: ChatBuilder = if (user.type == User.Companion.Type.NONAME) RegisterChat(user).getChat()
-	else BaseChats.hello(user)
-	var message: String? = null
+	var chat: ChatBuilder =
+		if (user.type == User.Companion.Type.NONAME) RegisterChat(user).getChat()
+		else BaseChats.hello(user)
+	var message: String = "/home"
 	private val lock = Semaphore(0)
 	private var worker: Job
 	
@@ -30,18 +32,36 @@ open class ChatProcessor(val user: User) {
 	 * 4. onCompleteAction + nextChatQuestion
 	 * 5. nextChatDeterminer
 	 */
-	fun work() {
+	private fun work() {
 		while (true) {
 			Optional.of(chat).ifPresent {
-				Optional.ofNullable(chat.beforeExecution).ifPresent { it.invoke() }
+				chat.beforeExecution?.invoke()
 				try {
-					//Method.sendMessage(user.id, "Started chat: ${chat.name}")
 					var selectedAction: Pair<Response, (String) -> Unit>
 					var i = 0
 					while (i < chat.actions.size) {
 						if (i < 0) {
 							i = 0
 						}
+						
+						/*
+						
+						1. -home, -help, -back
+						^ message = ObjectObserver<String>("")
+						
+						2. -shitty
+						while (!selectedAction.over) {
+						
+						when (message) --- handle home/help/back
+						selectedAction.action(message)
+						
+						}
+						
+						
+						selectedAction = chat.actions[i]
+						selectedAction.handle(lock, message)
+						
+						 */
 						selectedAction = chat.actions[i]
 						sendMessage(selectedAction.first)
 						lock.acquire()
@@ -55,13 +75,11 @@ open class ChatProcessor(val user: User) {
 							}
 							else             -> {
 								try {
-									selectedAction.second.invoke(message!!)
-									if (chat.eachStepAction != null) {
-										chat.eachStepAction!!.invoke()
-									}
+									selectedAction.second(message)
+									chat.eachStepAction?.invoke()
 								} catch (e: Exception) {
 									println("here!")
-									if (chat.errorHandler.first.invoke(e)) {
+									if (chat.errorHandler.first(e)) {
 										throw e
 									}
 								}
@@ -69,27 +87,8 @@ open class ChatProcessor(val user: User) {
 							}
 						}
 					}
-					//					chat.actions.forEach {
-					//						sendMessage(it.first)
-					//						lock.acquire()
-					//						if (message == "/home") {
-					//							chat = BaseChats.hello(user)
-					//							return@ifPresent
-					//						}
-					//						try {
-					//							it.second.invoke(message!!)
-					//							if (chat.eachStepAction != null) {
-					//								chat.eachStepAction!!.invoke()
-					//							}
-					//						} catch (e: Exception) {
-					//							println("here!")
-					//							if (chat.errorHandler.first.invoke(e)) {
-					//								throw e
-					//							}
-					//						}
-					//					}
-					Optional.ofNullable(chat.onCompleteAction).ifPresent { it.invoke() }
-					Optional.ofNullable(chat.onCompleteMessage).ifPresent { sendMessage(it) }
+					chat.onCompleteAction?.invoke()
+					chat.onCompleteMessage?.send()
 				} catch (e: Exception) {
 					val sb = StringBuilder().append(e.javaClass.name).append("  ->  ")
 						.append(e.localizedMessage).append("\n")
@@ -103,21 +102,16 @@ open class ChatProcessor(val user: User) {
 					e.printStackTrace()
 				}
 				
-				if (chat.nextChatQuestion != null) {
-					sendMessage(chat.nextChatQuestion!!)
+				chat.nextChatQuestion?.also {
+					sendMessage(it)
 					lock.acquire()
 					if (message == "/home") {
 						chat = BaseChats.hello(user)
 						return@ifPresent
 					}
 				}
-				if (chat.nextChatDeterminer != null) {
-					chat = chat.nextChatDeterminer!!.invoke(message!!)
-				} else {
-					chat = BaseChats.hello(user)
-				}
-				
-				Optional.ofNullable(chat.afterWorkAction).ifPresent { it.invoke() }
+				chat = chat.nextChatDeterminer.invoke(message)
+				chat.afterWorkAction?.invoke()
 			}
 		}
 	}
@@ -127,11 +121,11 @@ open class ChatProcessor(val user: User) {
 		lock.release(1)
 	}
 	
-	fun sendMessage(response: Response) {
+	private fun sendMessage(response: Response) {
 		Method.sendMessage(response.ensureUser(user.id))
 	}
 	
-	fun sendMessage(text: String) {
+	private fun sendMessage(text: String) {
 		Method.sendMessage(user.id, text)
 	}
 	

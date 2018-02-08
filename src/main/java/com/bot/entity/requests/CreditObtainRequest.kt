@@ -12,12 +12,13 @@ data class CreditObtainRequest(@Id override val id: String = UUID.randomUUID().t
                                override var creator: String,
                                override var amount: Double = 0.0,
                                override var approver: String? = null,
-                               var pickupDate: LocalDate? = null,
-                               var bco: Boolean? = null) : CreditRequest {
+                               var pickupDate: LocalDate? = null) : CreditRequest {
 	
 	override var opened: LocalDateTime = LocalDateTime.now()
 	override var closed: LocalDateTime? = null
 	
+	var bco: Boolean = false
+	var truckId: String = ""
 	var fb = ""
 	var releaseId: String = ""
 	override val type: String = "Credit release"
