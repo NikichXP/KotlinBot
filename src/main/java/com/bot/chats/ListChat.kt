@@ -68,7 +68,13 @@ class ListChat<T>(user: User) : ChatParent(user) {
 					"Home"    -> BaseChats.hello(user)
 					"Back"    -> backChat
 					else      -> when {
-						it.toIntOrNull() != null      -> selectFunction.invoke(list[it.toInt() + skip - 1])
+						it.toIntOrNull() != null      -> {
+							if (it.toInt() + skip - 1 < list.size) {
+								selectFunction.invoke(list[it.toInt() + skip - 1])
+							} else {
+								elseFunction.invoke(it)
+							}
+						}
 						customChatButtons[it] != null -> customChatButtons[it]!!
 						else                          -> elseFunction.invoke(it)
 					}
