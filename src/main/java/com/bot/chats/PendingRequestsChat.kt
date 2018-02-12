@@ -51,7 +51,7 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 				Response { select.getText() + TextResolver.getText("pendingRequest.actionSelect") }
 					.withCustomKeyboard("❌ Cancel", "\uD83C\uDFBE Approve", "\uD83D\uDD34 Decline", "\uD83C\uDFE0 Home"),
 				{
-					when (it.filter { it.isLetter() }.toLowerCase()) { // TODO Change credit limit for customer
+					when (it.filter { it.isLetter() }.trim().toLowerCase()) { // TODO Change credit limit for customer
 						"cancel"  -> return@setNextChatFunction getChat()
 						"approve" -> {
 							return@setNextChatFunction if (request is CreditObtainRequest) approveRelease() else approveCreditLimit()
@@ -71,56 +71,6 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 					return@setNextChatFunction BaseChats.hello(user)
 				}
 			)
-	}
-	
-	fun getOldChat(): ChatBuilder {
-		val int = AtomicInteger(0)
-		return ChatBuilder(user).name("pendingRequests_home")
-			.then(Response {
-				requestList = mutableListOf()
-				requestList.addAll(creditObtainsRepo.findByStatus(Status.PENDING.value))
-				requestList.addAll(creditIncreaseRepo.findByStatus(Status.PENDING.value))
-				requestList.stream().map {
-					"/${int.incrementAndGet()} -- ${it.customer.fullName} (${it.customer.accountId ?: "Pending"}) ::" +
-						" ${it.type} :: ${DecimalFormat("#,###.##").format(it.amount)}"
-				}
-					.reduce { a, b -> "$a\n$b" }.orElse("Nothing found")
-			}, {
-				select = requestList[it.replace("/", "").toInt() - 1]
-			})
-			.setNextChatFunction(Response {
-				select.getText() + TextResolver.getText("pendingRequest.actionSelect")
-			}, {
-				
-				fun getCorrespondingChat(request: CreditRequest): ChatBuilder = if (request is CreditObtainRequest) approveRelease() else approveCreditLimit()
-				
-				when (it) { // TODO Change credit limit for customer
-					"/cancel"  -> return@setNextChatFunction getChat()
-					"/approve" -> {
-						return@setNextChatFunction getCorrespondingChat(select)
-					}
-					"/decline" -> {
-						select.status = Status.DECLINED.value
-						select.approver = user.id
-						Notifier.notifyOnUpdate(select)
-					}
-					"/home"    -> {
-					}
-					else       -> {
-						if (it.toDoubleOrNull() != null) {
-							select.amount = it.toDouble()
-							return@setNextChatFunction getCorrespondingChat(select)
-						}
-						sendMessage("pendingRequest.error.unknownAction")
-						return@setNextChatFunction getChat()
-					}
-				}
-				return@setNextChatFunction BaseChats.hello(user)
-			})
-			.setOnCompleteMessage(Response {
-				"Request ${select.id} (${select.customer.fullName} for $${select.amount}) " +
-					"is now ${select.status}"
-			})
 	}
 	
 	private fun approveCreditLimit(): ChatBuilder {
