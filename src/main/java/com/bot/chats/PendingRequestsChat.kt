@@ -49,9 +49,9 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 		return ChatBuilder(user)
 			.setNextChatFunction(
 				Response { select.getText() + TextResolver.getText("pendingRequest.actionSelect") }
-					.withCustomKeyboard("Cancel", "Approve", "Decline", "Home"),
+					.withCustomKeyboard("❌ Cancel", "\uD83C\uDFBE Approve", "\uD83D\uDD34 Decline", "\uD83C\uDFE0 Home"),
 				{
-					when (it.filter { it != '/' }.toLowerCase()) { // TODO Change credit limit for customer
+					when (it.filter { it.isLetter() }.toLowerCase()) { // TODO Change credit limit for customer
 						"cancel"  -> return@setNextChatFunction getChat()
 						"approve" -> {
 							return@setNextChatFunction if (request is CreditObtainRequest) approveRelease() else approveCreditLimit()

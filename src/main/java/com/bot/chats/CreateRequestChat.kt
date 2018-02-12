@@ -72,12 +72,13 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 	
 	fun getAction() = ChatBuilder(user).name("createRequest_selectAction")
 		.setNextChatFunction(Response(user, "createRequest.search.getAction")
-			.withCustomKeyboard("Credit release", "Limit increase", "Cancel"),
+			.withCustomKeyboard("\uD83D\uDCB8 Credit release", "\uD83D\uDCB5 Limit increase", "❌ Cancel"),
 			{
 				return@setNextChatFunction when {
-					it == "Credit release" -> getCreditReleaseChat()
-					it == "Cancel"         -> BaseChats.hello(user)
-					else                   -> getCreditLimitIncreaseChat()
+					it.contains("Credit release") -> getCreditReleaseChat()
+					it.contains("Cancel")         -> BaseChats.hello(user)
+					it.contains("Limit increase") -> getCreditLimitIncreaseChat()
+					else                          -> throw IllegalArgumentException("Update in chat 'CreateRequestChat' selector required.")
 				}
 			})
 	
@@ -109,7 +110,7 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 					}
 				}
 			})
-			.then(Response(user.id, "createRequest.creditRelease.bco").withCustomKeyboard("BCO", "Carrier"), {
+			.then(Response(user.id, "createRequest.creditRelease.bco").withCustomKeyboard("\uD83D\uDE8D BCO", "\uD83D\uDE9A Carrier"), {
 				it.contains("bco", true).also {
 					isBco.set(it)
 					creditObtainRequest.bco = it

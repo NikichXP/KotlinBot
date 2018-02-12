@@ -46,6 +46,10 @@ open class ChatProcessor(val user: User) {
 						selectedAction = chat.actions[i++]
 						selectedAction.handle(lock)
 						while (!selectedAction.isCompleted()) {
+							if (message.contains("\uD83C\uDFE0")) {
+								chat = BaseChats.hello(user)
+								return@ifPresent
+							}
 							when (message) {
 								"/help", "/home" -> {
 									chat = BaseChats.hello(user)

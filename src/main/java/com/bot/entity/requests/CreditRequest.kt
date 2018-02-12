@@ -2,6 +2,7 @@ package com.bot.entity.requests
 
 import com.bot.entity.Customer
 import com.bot.entity.User
+import com.bot.logic.TextResolver
 import com.bot.repo.UserFactory
 import com.bot.util.getTimeDiff
 import java.text.DecimalFormat
@@ -32,7 +33,7 @@ interface CreditRequest {
 		Creator: ${this.creator} // ${UserFactory[this.creator].fullName}
 		Opened: ${this.opened}
 		${if (closed != null) ("Closed: " + closed + "\nTime opened: " + this.closed!!.getTimeDiff(this.opened)) else "Not closed"}
-		Status: ${this.status}
+		Status: ${TextResolver.getText(this.status.toLowerCase())}
 		""".trimMargin()
 	
 	fun approve(user: User, amount: Double = this.amount) {

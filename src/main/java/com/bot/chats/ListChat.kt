@@ -62,12 +62,12 @@ class ListChat<T>(user: User) : ChatParent(user) {
 					customButtonsMap[it]!!.invoke(this)
 					return@setNextChatFunction getChat(0)
 				}
-				return@setNextChatFunction when (it) {
-					"<<", "«" -> getChat(Math.max(0, skip - pageSize))
-					">>", "»" -> getChat(Math.min(skip + pageSize, list.size - pageSize))
-					"Home"    -> BaseChats.hello(user)
-					"Back"    -> backChat
-					else      -> when {
+				return@setNextChatFunction when {
+					it == "◀️"                -> getChat(Math.max(0, skip - pageSize))
+					it == "▶️"                -> getChat(Math.min(skip + pageSize, list.size - pageSize))
+					it.contains("Home", true) -> BaseChats.hello(user)
+					it.contains("Back", true) -> backChat
+					else                      -> when {
 						it.toIntOrNull() != null      -> {
 							if (it.toInt() + skip - 1 < list.size) {
 								selectFunction.invoke(list[it.toInt() + skip - 1])
@@ -85,11 +85,11 @@ class ListChat<T>(user: User) : ChatParent(user) {
 	private fun arraySelection(count: Int): Array<Array<String>> {
 		val line1 = (1..count).map { it.toString() }.toTypedArray()
 		if ((customButtonsMap.size + customChatButtons.size) < 5) {
-			val line2 = arrayOf("<<", "Home", "Back") + customButtonsMap.keys.toTypedArray() +
-				customChatButtons.keys.toTypedArray() + arrayOf(">>")
+			val line2 = arrayOf("◀️", "\uD83C\uDFE0 Home", "\uD83D\uDD19 Back") + customButtonsMap.keys.toTypedArray() +
+				customChatButtons.keys.toTypedArray() + arrayOf("▶️")
 			return arrayOf(line1, line2)
 		} else {
-			val line2 = arrayOf("<<", "Home", "Back", ">>")
+			val line2 = arrayOf("◀️", "\uD83C\uDFE0 Home", "\uD83D\uDD19 Back", "▶️")
 			val line3 = customButtonsMap.keys.toTypedArray() + customChatButtons.keys.toTypedArray()
 			return arrayOf(line1, line2, line3)
 		}
