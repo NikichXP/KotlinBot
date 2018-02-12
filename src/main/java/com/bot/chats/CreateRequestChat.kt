@@ -123,25 +123,6 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 			.setOnCompleteAction {
 				creditObtainsRepo.save(creditObtainRequest)
 				launch {
-					sheetsAPI.writeToTable("default", creditObtainRequest.type, -1,
-						arrayOf(
-							creditObtainRequest.id,
-							LocalDate.now().toString(), //request.id	LocalDate.now()	user.name	customer.name
-							user.fullName!!,
-							customer!!.fullName,
-							customer!!.id, //customer.id	новое поле fb	select.amount	String	select.status.value	пустое поле
-							creditObtainRequest.fb,
-							"$" + DecimalFormat("#,###.##").format(creditObtainRequest.amount),
-							creditObtainRequest.type,
-							creditObtainRequest.status,
-							"",
-							creditObtainRequest.comment, //новое поле comment	customer.contact	что?
-							customer!!.info ?: "No info",
-							"",
-							"",
-							customer!!.creditLimit.toString()
-						)
-					)
 					val select = creditObtainRequest
 					sheetsAPI.writeToTable("default", "Requests", -1,
 						arrayOf(select.id,
@@ -188,27 +169,6 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 	private fun createLimitEntry(customer: Customer, creditIncreaseRequest: CreditIncreaseRequest): CreditIncreaseRequest {
 		creditIncreaseRepo.save(creditIncreaseRequest)
 		launch {
-			sheetsAPI.writeToTable("default", creditIncreaseRequest.type, -1,
-				arrayOf(creditIncreaseRequest.id,
-					LocalDate.now().toString(),
-					user.fullName!!,
-					customer.fullName,
-					customer.id,
-					"-",
-					creditIncreaseRequest.type,
-					creditIncreaseRequest.status,
-					"-",
-					"TODO documents",
-					creditIncreaseRequest.comment,
-					customer.info ?: "No info",
-					"$0",
-					"$" + DecimalFormat("#,###.##").format(creditIncreaseRequest.amount),
-					"-",
-					"-",
-					customer.creditLimit.toString()
-				)
-			)
-			
 			sheetsAPI.writeToTable("default", "Requests", -1,
 				arrayOf(creditIncreaseRequest.id,
 					LocalDate.now().toString(),

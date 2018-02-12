@@ -51,7 +51,7 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 				Response { select.getText() + TextResolver.getText("pendingRequest.actionSelect") }
 					.withCustomKeyboard("❌ Cancel", "\uD83C\uDFBE Approve", "\uD83D\uDD34 Decline", "\uD83C\uDFE0 Home"),
 				{
-					when (it.filter { it.isLetter() }.trim().toLowerCase()) { // TODO Change credit limit for customer
+					when (it.split(" ").last().toLowerCase()) {
 						"cancel"  -> return@setNextChatFunction getChat()
 						"approve" -> {
 							return@setNextChatFunction if (request is CreditObtainRequest) approveRelease() else approveCreditLimit()
@@ -83,13 +83,6 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 					select.approve(user, it.toDouble())
 					creditIncreaseRepo.save(select as CreditIncreaseRequest)
 					launch {
-						gSheetsAPI.updateCellsWhere(page = select.type, criteria = { it[0] == select.id }, updateFx = {
-							it[7] = select.status
-							it[12] = "$" + DecimalFormat("#,###.##").format(select.amount - select.customer.creditLimit)
-							it[13] = "$" + DecimalFormat("#,###.##").format(oldAmount)
-							it[14] = "$" + DecimalFormat("#,###.##").format(select.amount)
-							return@updateCellsWhere it
-						})
 						gSheetsAPI.updateCellsWhere(page = "Requests", criteria = { it[0] == select.id }, updateFx = {
 							it[5] = if (select.type == "New customer") "Set:${select.customer.accountId
 								?: "Failed to set ID?"}"
