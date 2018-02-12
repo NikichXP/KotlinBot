@@ -60,6 +60,13 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 							select.status = Status.DECLINED.value
 							select.approver = user.id
 							Notifier.notifyOnUpdate(select)
+							if (request is CreditObtainRequest) creditObtainsRepo.save(request) else creditIncreaseRepo.save(request as CreditIncreaseRequest)
+							launch {
+								gSheetsAPI.updateCellsWhere(page = "Requests", criteria = { it[0] == request.id }, updateFx = {
+									it[10] = request.status
+									return@updateCellsWhere it
+								})
+							}
 						}
 						"home"    -> {
 						}
