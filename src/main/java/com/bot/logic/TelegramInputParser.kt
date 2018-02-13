@@ -3,7 +3,9 @@ package com.bot.logic
 import com.bot.entity.Message
 import com.bot.repo.UserFactory
 import com.bot.tgapi.Method
+import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.google.gson.JsonSyntaxException
 import org.springframework.stereotype.Service
 import java.lang.UnsupportedOperationException
 import java.util.concurrent.ConcurrentHashMap
@@ -19,7 +21,12 @@ class TelegramInputParser {
 		
 		try {
 			val message: Message
-			var jsonObject = JsonParser().parse(inputJson).asJsonObject
+			var jsonObject: JsonObject
+			try {
+				jsonObject = JsonParser().parse(inputJson).asJsonObject
+			} catch (e: JsonSyntaxException) {
+				return
+			}
 			when {
 				jsonObject.has("message")        -> message = Message(inputJson)
 				jsonObject.has("callback_query") -> {

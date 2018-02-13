@@ -65,6 +65,9 @@ object Notifier {
 	}
 	
 	fun notifyOnRegister(user: User) {
+		if (user.type != User.Companion.Type.NONAME || !user.isSubmitted) {
+			return
+		}
 		UserFactory.findByType(User.Companion.Type.ADMIN).forEach {
 			Method.sendMessage(Response { "Registered user: ${user.fullName} - Pending" }.ensureUser(it.id).withNoKeyboardChange())
 		}
