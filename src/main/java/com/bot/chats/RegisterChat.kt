@@ -45,13 +45,17 @@ class RegisterChat(user: User) : ChatParent(user) {
 	
 	fun getApprove(): ChatBuilder = ChatBuilder(user).name("register_check")
 		.setNextChatFunction(Response(user, "Wait for admin to approve you. Your name and email:\n" +
-			"${user.fullName}\n${user.email}\nYou can edit this data")
-			.withCustomKeyboard("Edit name", "Edit mail", "Check"), {
+			"${user.fullName}\n${user.email}\nYou can edit this data or submit your appliance")
+			.withCustomKeyboard("Edit name", "Edit mail", "Submit/Check"), {
 			when (it) {
 				"Edit name" -> return@setNextChatFunction getName()
 				"Edit mail" -> return@setNextChatFunction getMail()
 			}
 			user = UserFactory.forceCheck(user.id)
+			user.isSubmitted = true
+			UserFactory.save(user.id)
+			
+			sendMessage("Submitted")
 			
 			if (user.type != User.Companion.Type.NONAME) {
 				return@setNextChatFunction BaseChats.hello(user)

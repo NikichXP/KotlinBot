@@ -8,14 +8,15 @@ data class User(@Id var id: String,
                 var fullName: String? = null,
                 var username: String? = null,
                 var email: String? = null,
-                var accessLevel: Int = 0,
-                var balance: Double = 0.0) {
+                var accessLevel: Int = 0) {
 	
 	constructor(message: Message) : this(
 		id = message.senderId,
 		fullName = Optional.ofNullable(message.firstName).orElse("") + " " + Optional.ofNullable(message.lastName).orElse(message.username), //cause it works only this way
 		username = message.username
 	)
+	
+	var isSubmitted: Boolean = false
 	
 	companion object {
 		enum class Type {
