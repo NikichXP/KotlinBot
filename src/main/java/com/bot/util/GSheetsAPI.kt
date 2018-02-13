@@ -65,7 +65,7 @@ class GSheetsAPI
 	fun getFirstFreeLine(sheetId: String?, page: String): Int {
 		try {
 			val x3 = restTemplate
-				.getForEntity("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + page + "!" + "A1:A1000"
+				.getForEntity("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + page + "!" + "A1:A10000"
 					+ "?majorDimension=COLUMNS&access_token="
 					+ gAuthAPI.accessToken, String::class.java).body!!
 			

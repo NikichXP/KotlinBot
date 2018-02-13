@@ -63,7 +63,7 @@
   "createRequest.limitIncrease.comment": "Add comment",
 
   //Pending Requests
-  "pendingRequest.actionSelect": "\n/cancel editing\n/home for main menu\n/approve this\n/decline this\nOr set your own credit limit (12345.67)",
+  "pendingRequest.actionSelect": "See commands on keyboard below.",
   "pendingRequest.enterLimitAmount": "Enter limit amount or /cancel",
   "pendingRequest.enterReleaseID": "Enter credit Release# or /cancel",
   "pendingRequest.error.unknownAction": "Unknown action",

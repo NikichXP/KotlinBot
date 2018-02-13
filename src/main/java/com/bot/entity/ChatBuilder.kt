@@ -1,6 +1,7 @@
 package com.bot.entity
 
 import com.bot.chats.BaseChats
+import kotlinx.coroutines.experimental.sync.Mutex
 import java.util.LinkedList
 import java.util.concurrent.Semaphore
 
@@ -53,7 +54,7 @@ class ChatBuilder(val user: User) {
 
 interface ChatAction {
 	
-	fun handle(lock: Semaphore)
+	suspend fun handle(lock: Mutex)
 	fun action(text: String)
 	fun isCompleted(): Boolean
 	
@@ -63,9 +64,9 @@ class DefaultChatAction(var response: Response, var action: (String) -> Unit) : 
 	
 	private var isCompleted = false
 	
-	override fun handle(lock: Semaphore) {
+	override suspend fun handle(lock: Mutex) {
 		response.send()
-		lock.acquire()
+		lock.lock()
 	}
 	
 	override fun action(text: String) {
@@ -86,13 +87,13 @@ class OptionalChatAction(var workOrNot: () -> Boolean, var response: Response, v
 		isCompleted = !(workOrNot.invoke())
 	}
 	
-	override fun handle(lock: Semaphore) {
+	override suspend fun handle(lock: Mutex) {
 		
 		if (workOrNot.invoke()) {
 			response.send()
 			isRequestSent = true
 			isCompleted = false
-			lock.acquire()
+			lock.lock()
 		}
 	}
 	
