@@ -101,6 +101,7 @@ open class ChatProcessor(val user: User) {
 		} catch (e: Exception) {
 			sendMessage("Exception on nextChatDeterminer, please send screenshot to support. Exception message:" +
 				e.localizedMessage + "\nTime: ${LocalDateTime.now()}")
+			e.printStackTrace()
 			chat = BaseChats.hello(user)
 		}
 	}

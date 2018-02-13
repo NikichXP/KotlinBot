@@ -8,7 +8,7 @@ import java.util.*
 
 class Response(var chat_id: String?, text: String) {
 	
-	var reply_markup: ReplyMarkup = ReplyKeyboardRemove()
+	var reply_markup: ReplyMarkup? = ReplyKeyboardRemove()
 	var text: String
 	var lateinitFx: (() -> String)? = null
 	
@@ -101,5 +101,10 @@ class Response(var chat_id: String?, text: String) {
 	
 	fun findTextSupplements(correct: Boolean) {
 		text = TextResolver.getText(text, correct)
+	}
+	
+	fun withNoKeyboardChange(): Response {
+		reply_markup = null
+		return this
 	}
 }

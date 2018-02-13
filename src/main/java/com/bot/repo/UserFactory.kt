@@ -30,7 +30,12 @@ object UserFactory {
 	})
 	
 	fun save(id: String) {
-		if (userMap[id] != null) userRepo.save(userMap[id]!!)
+		if (userMap[id] != null) userRepo.save(userMap[id]!!) else throw IllegalArgumentException("No user present")
+	}
+	
+	fun save(user: User) {
+		userMap.putIfAbsent(user.id, user)
+		userRepo.save(user)
 	}
 	
 	fun findAll(): MutableList<User> {

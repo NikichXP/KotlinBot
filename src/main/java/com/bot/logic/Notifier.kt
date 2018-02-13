@@ -1,5 +1,6 @@
 package com.bot.logic
 
+import com.bot.entity.Response
 import com.bot.entity.User
 import com.bot.entity.requests.CreditObtainRequest
 import com.bot.entity.requests.CreditRequest
@@ -61,6 +62,12 @@ object Notifier {
 	
 	fun notifyOnPermissions(user: User) {
 		Method.sendMessage(user.id, "Your permission level is now ${user.accessLevel} and it is ${user.type.name}")
+	}
+	
+	fun notifyOnRegister(user: User) {
+		UserFactory.findByType(User.Companion.Type.ADMIN).forEach {
+			Method.sendMessage(Response { "Registered user: ${user.fullName} - Pending" }.ensureUser(it.id).withNoKeyboardChange())
+		}
 	}
 	
 }
