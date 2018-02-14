@@ -32,7 +32,7 @@
   //Import chat
   "customerCreate.import.name": "Enter customer name",
   "customerCreate.import.id": "Enter customer Acc#",
-  "customerCreate.import.address": "Enter customer or /skip this step",
+  "customerCreate.import.address": "Enter customer address or /skip this step",
   "customerCreate.import.info": "Enter customer contact info",
 
   //Create chat
