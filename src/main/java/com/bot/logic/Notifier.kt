@@ -35,7 +35,9 @@ object Notifier {
 	fun notifyOnCreate(request: CreditRequest) {
 		UserFactory.findAll().filter { it.accessLevel >= 2 && it.id != request.creator }.forEach {
 			Method.sendMessage(it.id, "New request: ${request.type};\nCreator: ${request.creatorName()}\n" +
-				"Customer: ${request.customer.fullName}\nAmount: $${DecimalFormat("#,###.##").format(request.amount)}")
+				"Customer: ${request.customer.fullName} (${request.customer.id})\n" +
+				"Amount: $${DecimalFormat("#,###.##").format(request.amount)}\n" +
+				"Comment: ${request.comment}")
 		}
 	}
 	
@@ -43,9 +45,13 @@ object Notifier {
 		when (request) {
 			is CreditObtainRequest -> {
 				Method.sendMessage(request.creator, "Your release request (ID #${request.id}) is now: \"${request.status}\"\n" +
+					"Company: ${request.customer.fullName} (${request.customer.id})\n" +
+					"Amount: ${request.amount}, Editor: ${userName(request.approver)}\nComment: ${request.comment}\n" +
 					"Release ID: ${request.releaseId}.\nEditor: ${userName(request.approver)}")
 				if (request.approver != null) {
 					Method.sendMessage(request.approver!!, "You updated release request (ID #${request.id}), is now: \"${request.status}\"\n" +
+						"Company: ${request.customer.fullName} (${request.customer.id})\n" +
+						"Amount: ${request.amount}, Editor: ${userName(request.approver)}\nComment: ${request.comment}\n" +
 						"Release ID: ${request.releaseId}.\nCreator: ${userName(request.creator)}")
 				}
 			}
@@ -56,7 +62,8 @@ object Notifier {
 						"Amount: ${request.amount}, Editor: ${userName(request.approver)}\nComment: ${request.comment}")
 				if (request.approver != null) {
 					Method.sendMessage(request.approver!!, "You updated request: ${request.type} (ID #${request.id}), is now: \"${request.status}\"\n" +
-						"Amount: ${request.amount}.\nCreator: ${userName(request.creator)}")
+						"Company: ${request.customer.fullName} (${request.customer.id})\n" +
+						"Amount: ${request.amount}, Editor: ${userName(request.approver)}\nComment: ${request.comment}")
 				}
 			}
 		}
