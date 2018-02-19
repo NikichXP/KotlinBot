@@ -37,7 +37,8 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 		return ListChat(user, requestList)
 			.printFunction {
 				"${it.customer.fullName} (${it.customer.accountId
-					?: "Pending"}) :: ${it.type} :: ${DecimalFormat("#,###.##").format(it.amount)}"
+					?: "Pending"}) :: ${it.type} :: ${DecimalFormat("#,###.##").format(it.amount)}," +
+					" ${it.openedFor(true)}"
 			}
 			.also { it.headText = "Select request" }
 			.selectFunction { viewRequest(it) }

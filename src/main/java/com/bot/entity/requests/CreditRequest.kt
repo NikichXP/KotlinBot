@@ -24,7 +24,7 @@ interface CreditRequest {
 	fun getText() =
 		"""Type: ${this.type}
 		
-		Customer: ${this.customer.fullName}
+		Customer: ${this.customer.fullName}, ID: ${this.customer.id}
 		Created by agent (id): ${this.customer.agent} // ${UserFactory[this.customer.agent].fullName}
 		Current credit limit: ${this.customer.creditLimit}
 		Address: ${this.customer.address}
@@ -44,5 +44,10 @@ interface CreditRequest {
 	}
 	
 	fun creatorName(): String = UserFactory[creator].fullName ?: "Noname"
+	fun openedFor(truncated: Boolean = false): String =
+		if (truncated) LocalDateTime.now().getTimeDiff(this.opened, showSeconds = false)
+			.replace(" days", "d").replace("h ", ":").replace("m", "")
+			.takeIf { it != "0:0" } ?: "<1m"
+		else LocalDateTime.now().getTimeDiff(this.opened)
 	
 }

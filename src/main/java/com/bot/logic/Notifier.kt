@@ -50,8 +50,10 @@ object Notifier {
 				}
 			}
 			else                   -> {
-				Method.sendMessage(request.creator, "Your request: ${request.type} (ID #${request.id}) is now: \"${request.status}\"\n" +
-					"Amount: ${request.amount}.\nEditor: ${userName(request.approver)}")
+				Method.sendMessage(request.creator,
+					"Your request: ${request.type} (ID #${request.id}) is now: \"${request.status}\"\n" +
+						"Company: ${request.customer.fullName} (${request.customer.id})\n" +
+						"Amount: ${request.amount}, Editor: ${userName(request.approver)}\nComment: ${request.comment}")
 				if (request.approver != null) {
 					Method.sendMessage(request.approver!!, "You updated request: ${request.type} (ID #${request.id}), is now: \"${request.status}\"\n" +
 						"Amount: ${request.amount}.\nCreator: ${userName(request.creator)}")

@@ -4,12 +4,9 @@ import com.bot.chats.BaseChats
 import com.bot.chats.RegisterChat
 import com.bot.entity.*
 import com.bot.tgapi.Method
-import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.runBlocking
 import kotlinx.coroutines.experimental.sync.Mutex
 import java.time.LocalDateTime
-import java.util.concurrent.Semaphore
 
 open class ChatProcessor(val user: User) {
 	
