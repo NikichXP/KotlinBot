@@ -14,6 +14,7 @@ import com.bot.repo.CreditIncreaseRepo
 import com.bot.repo.CreditObtainRepo
 import com.bot.repo.CustomerRepo
 import com.bot.util.GSheetsAPI
+import com.bot.util.isNot
 import kotlinx.coroutines.experimental.launch
 import java.text.DecimalFormat
 
@@ -97,7 +98,7 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 				if (it.contains("cancel")) {
 					return@setNextChatFunction getChat()
 				} else {
-					select.approve(user, it.filter { it != ',' }.toDouble())
+					select.approve(user, it.filter { it.isNot(',', '$') }.toDouble())
 					creditIncreaseRepo.save(select as CreditIncreaseRequest)
 					launch {
 						gSheetsAPI.updateCellsWhere(page = "Requests", criteria = { it[0] == select.id }, updateFx = {

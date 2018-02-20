@@ -36,3 +36,12 @@ fun String.isSelection(prefix: String = "/"): Boolean = this.substring(prefix.le
 fun String.mapIf(predicate: (String) -> Boolean, mapper: (String) -> String): String =
 	if (predicate(this)) mapper(this)
 	else this
+
+fun Char.isNot(vararg chars: Char): Boolean {
+	for (char in chars) {
+		if (this == char) {
+			return true
+		}
+	}
+	return false
+}

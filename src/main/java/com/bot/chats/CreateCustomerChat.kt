@@ -5,6 +5,7 @@ import com.bot.entity.*
 import com.bot.logic.TextResolver
 import com.bot.repo.CustomerRepo
 import com.bot.util.GSheetsAPI
+import com.bot.util.isNot
 import kotlinx.coroutines.experimental.launch
 import java.time.LocalDate
 
@@ -61,7 +62,7 @@ class CreateCustomerChat(user: User) : ChatParent(user) {
 			.then("customerCreate.create.info", { customer.info = it })
 			.then("customerCreate.create.creditLimit.request", {
 				try {
-					limit = it.filter { it != ',' }.toDouble()
+					limit = it.filter { it.isNot(',', '$') }.toDouble()
 				} catch (e: Exception) {
 					sendMessage("customerCreate.create.creditLimit.request.error.parse")
 				}

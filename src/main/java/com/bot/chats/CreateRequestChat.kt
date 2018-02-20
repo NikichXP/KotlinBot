@@ -10,6 +10,7 @@ import com.bot.entity.requests.CreditObtainRequest
 import com.bot.logic.Notifier
 import com.bot.repo.CreditIncreaseRepo
 import com.bot.util.GSheetsAPI
+import com.bot.util.isNot
 import kotlinx.coroutines.experimental.launch
 import java.text.DecimalFormat
 import java.time.DayOfWeek
@@ -85,7 +86,7 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 		return TextChatBuilder(user).name("createRequest_release")
 			.beforeExecution { creditObtainRequest = CreditObtainRequest(creator = user.id, customer = customer!!) }
 			.then("createRequest.creditRelease.amount", {
-				creditObtainRequest.amount = it.filter { it != ',' }.toDouble()
+				creditObtainRequest.amount = it.filter { it.isNot(',', '$') }.toDouble()
 			})
 			.then("createRequest.creditRelease.date", {
 				creditObtainRequest.pickupDate = when (if (it.startsWith("/")) it.substring(1) else it) {
@@ -150,7 +151,7 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 	
 	private fun getCreditLimitIncreaseChat() = TextChatBuilder(user).name("createRequest_increase")
 		.beforeExecution { creditIncreaseRequest = CreditIncreaseRequest(creator = user.id, customer = customer!!) }
-		.then("createRequest.limitIncrease.amount", { creditIncreaseRequest.amount = it.filter { it != ',' }.toDouble() })
+		.then("createRequest.limitIncrease.amount", { creditIncreaseRequest.amount = it.filter { it.isNot(',', '$') }.toDouble() })
 		.then("createRequest.limitIncrease.comment", { creditIncreaseRequest.comment = it })
 		.setOnCompleteAction {
 			createLimitEntry(customer!!, creditIncreaseRequest)
