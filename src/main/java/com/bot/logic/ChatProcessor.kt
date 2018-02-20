@@ -96,6 +96,10 @@ open class ChatProcessor(val user: User) {
 				chat = BaseChats.hello(user)
 				return
 			}
+			if (message == "/help") {
+				chat = BaseChats.getHelp(user)
+				return
+			}
 		}
 		try {
 			chat = chat.nextChatDeterminer.invoke(message)
