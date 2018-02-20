@@ -6,6 +6,7 @@ import com.bot.entity.Response
 import com.bot.entity.User
 import com.bot.logic.TextResolver
 import com.bot.logic.TextResolver.getText
+import com.bot.tgapi.Method
 import com.bot.util.GSheetsAPI
 import com.nikichxp.util.Async.async
 
@@ -33,9 +34,16 @@ object BaseChats {
 					it == getText("manageUsers") && user.accessLevel > 2     -> ManageUsersChat(user).getChat()
 					it == getText("pendingUsers") && user.accessLevel > 2    -> ManageUsersChat(user).getChat(User.Companion.Type.NONAME)
 					it.contains("test")                                      -> test(user)
+					it.contains("help")                                      -> getHelp(user)
 					else                                                     -> hello(user)
 				}
 			})
+	
+	fun getHelp(user: User) = ChatBuilder(user)
+		.setNextChatFunction {
+			Method.sendMessage(user.id, "Complete guide is located here: http://telegra.ph/Tekst-02-19-2")
+			hello(user)
+		}
 	
 	fun test(user: User): ChatBuilder {
 		val list = (-1..5).toList()

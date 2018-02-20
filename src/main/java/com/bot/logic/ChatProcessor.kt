@@ -47,7 +47,11 @@ open class ChatProcessor(val user: User) {
 				selectedAction.handle(lock)
 				while (!selectedAction.isCompleted()) {
 					if (message.contains("\uD83C\uDFE0") || message == "/help" || message == "/home") {
-						chat = BaseChats.hello(user)
+						if (message == "/help") {
+							chat = BaseChats.getHelp(user)
+						} else {
+							chat = BaseChats.hello(user)
+						}
 						return
 					}
 					when (message) {
