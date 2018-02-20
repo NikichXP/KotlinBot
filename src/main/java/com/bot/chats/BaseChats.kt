@@ -1,7 +1,7 @@
 package com.bot.chats
 
 import com.bot.Ctx
-import com.bot.entity.ChatBuilder
+import com.bot.entity.TextChatBuilder
 import com.bot.entity.Response
 import com.bot.entity.User
 import com.bot.logic.TextResolver
@@ -20,9 +20,9 @@ object BaseChats {
 		}
 	}
 	
-	fun hello(user: User): ChatBuilder =
+	fun hello(user: User): TextChatBuilder =
 		if (user.accessLevel == 0 || user.type == User.Companion.Type.NONAME) RegisterChat(user).getChat()
-		else ChatBuilder(user).name("hello")
+		else TextChatBuilder(user).name("hello")
 			.setNextChatFunction(Response(user)
 				.withViewData(TextResolver.getText("home"))
 				.withCustomKeyboard(TextResolver.mainMenu.slice(0 until user.accessLevel).toTypedArray()), {
@@ -39,13 +39,13 @@ object BaseChats {
 				}
 			})
 	
-	fun getHelp(user: User) = ChatBuilder(user)
+	fun getHelp(user: User) = TextChatBuilder(user)
 		.setNextChatFunction {
 			Method.sendMessage(user.id, "Complete guide is located here: http://telegra.ph/Tekst-02-19-2")
 			hello(user)
 		}
 	
-	fun test(user: User): ChatBuilder {
+	fun test(user: User): TextChatBuilder {
 		val list = (-1..5).toList()
 		return ListChat<Int>(user, list).selectFunction {
 			println("Selected: $it")

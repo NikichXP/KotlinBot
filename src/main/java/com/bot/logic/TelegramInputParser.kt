@@ -28,7 +28,7 @@ class TelegramInputParser {
 				return
 			}
 			when {
-				jsonObject.has("message")        -> message = Message(inputJson)
+				jsonObject.has("message")        -> message = Message(jsonObject.getAsJsonObject("message"))
 				jsonObject.has("callback_query") -> {
 					jsonObject = jsonObject.getAsJsonObject("callback_query")
 					message = Message(
@@ -43,7 +43,7 @@ class TelegramInputParser {
 			chatProcessors.getOrPut(message.senderId, {
 				val user = UserFactory[message]
 				return@getOrPut ChatProcessor(user)
-			}).input(message.text)
+			}).input(message)
 		} catch (e: Exception) {
 			e.printStackTrace()
 			Method.sendMessage("34080460", "error on parse: $inputJson")

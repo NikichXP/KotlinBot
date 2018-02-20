@@ -1,7 +1,7 @@
 package com.bot.chats
 
 import com.bot.Ctx
-import com.bot.entity.ChatBuilder
+import com.bot.entity.TextChatBuilder
 import com.bot.entity.Response
 import com.bot.entity.User
 import com.bot.entity.requests.CreditRequest
@@ -18,7 +18,7 @@ class MyRequestsChat(user: User) : ChatParent(user) {
 	private lateinit var requestList: MutableList<CreditRequest>
 	private lateinit var select: CreditRequest
 	
-	fun getChat(): ChatBuilder {
+	fun getChat(): TextChatBuilder {
 		val int = AtomicInteger(0)
 		
 		requestList = mutableListOf()
@@ -47,8 +47,8 @@ class MyRequestsChat(user: User) : ChatParent(user) {
 		}.getChat()
 	}
 	
-	fun modifyRequest(): ChatBuilder {
-		return ChatBuilder(user).name("myRequests_modifyRequest")
+	fun modifyRequest(): TextChatBuilder {
+		return TextChatBuilder(user).name("myRequests_modifyRequest")
 			.setNextChatFunction(Response {
 				select.getText() + "\n\n" + getText("myRequests.view.requestActions")
 			}, {

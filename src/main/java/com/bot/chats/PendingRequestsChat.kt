@@ -1,7 +1,7 @@
 package com.bot.chats
 
 import com.bot.Ctx
-import com.bot.entity.ChatBuilder
+import com.bot.entity.TextChatBuilder
 import com.bot.entity.Response
 import com.bot.entity.User
 import com.bot.entity.requests.CreditIncreaseRequest
@@ -13,11 +13,9 @@ import com.bot.logic.TextResolver
 import com.bot.repo.CreditIncreaseRepo
 import com.bot.repo.CreditObtainRepo
 import com.bot.repo.CustomerRepo
-import com.bot.tgapi.Method
 import com.bot.util.GSheetsAPI
 import kotlinx.coroutines.experimental.launch
 import java.text.DecimalFormat
-import java.util.concurrent.atomic.AtomicInteger
 
 class PendingRequestsChat(user: User) : ChatParent(user) {
 	
@@ -29,7 +27,7 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 	//	private val workingLock = ConcurrentSkipListSet<String>() // TODO Fix concurrent issues
 	private lateinit var select: CreditRequest
 	
-	fun getChat(): ChatBuilder {
+	fun getChat(): TextChatBuilder {
 		requestList.also {
 			it.addAll(creditObtainsRepo.findByStatus(Status.PENDING.value))
 			it.addAll(creditIncreaseRepo.findByStatus(Status.PENDING.value))
@@ -45,9 +43,9 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 			.getChat()
 	}
 	
-	private fun viewRequest(request: CreditRequest): ChatBuilder {
+	private fun viewRequest(request: CreditRequest): TextChatBuilder {
 		select = request
-		return ChatBuilder(user)
+		return TextChatBuilder(user)
 			.setNextChatFunction(
 				Response { select.getText() + TextResolver.getText("pendingRequest.actionSelect") }
 					.withCustomKeyboard("❌ Cancel", "\uD83C\uDFBE Approve", "\uD83D\uDD34 Decline", "\uD83C\uDFE0 Home"),
@@ -73,7 +71,7 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 			)
 	}
 	
-	private fun provideDeclineReason(request: CreditRequest): ChatBuilder = ChatBuilder(user)
+	private fun provideDeclineReason(request: CreditRequest): TextChatBuilder = TextChatBuilder(user)
 		.setNextChatFunction(Response(user.id, "Enter a decline reason or /cancel to go back"), {
 			if (it == "/cancel") {
 				return@setNextChatFunction viewRequest(request)
@@ -92,9 +90,9 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 			return@setNextChatFunction BaseChats.hello(user)
 		})
 	
-	fun approveCreditLimit(): ChatBuilder {
+	fun approveCreditLimit(): TextChatBuilder {
 		val oldAmount = select.amount
-		val ret = ChatBuilder(user).name("pendingRequests_approveCreditLimit")
+		val ret = TextChatBuilder(user).name("pendingRequests_approveCreditLimit")
 			.setNextChatFunction("pendingRequest.enterLimitAmount", {
 				if (it.contains("cancel")) {
 					return@setNextChatFunction getChat()
@@ -121,7 +119,7 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 				}
 			})
 		if (select.type == "New customer") {
-			return ChatBuilder(user).name("pendingRequests_approveClient")
+			return TextChatBuilder(user).name("pendingRequests_approveClient")
 				.setNextChatFunction("Enter customer account ID", {
 					select.customer.accountId = it
 					customerRepo.save(select.customer)
@@ -131,9 +129,9 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 		return ret
 	}
 	
-	private fun approveRelease(): ChatBuilder {
+	private fun approveRelease(): TextChatBuilder {
 		val select = this.select as CreditObtainRequest
-		return ChatBuilder(user).name("pendingRequests_release")
+		return TextChatBuilder(user).name("pendingRequests_release")
 			.setNextChatFunction("pendingRequest.enterReleaseID", {
 				if (it.contains("cancel")) {
 					return@setNextChatFunction getChat()

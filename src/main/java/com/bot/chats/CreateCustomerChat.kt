@@ -4,7 +4,6 @@ import com.bot.Ctx
 import com.bot.entity.*
 import com.bot.logic.TextResolver
 import com.bot.repo.CustomerRepo
-import com.bot.tgapi.Method
 import com.bot.util.GSheetsAPI
 import kotlinx.coroutines.experimental.launch
 import java.time.LocalDate
@@ -15,7 +14,7 @@ class CreateCustomerChat(user: User) : ChatParent(user) {
 	private val sheetsAPI = Ctx.get(GSheetsAPI::class.java)
 	private var customer: Customer = Customer(fullName = "", agent = user.id)
 	
-	fun getChat(): ChatBuilder = ChatBuilder(user).name("createCustomer_intro")
+	fun getChat(): TextChatBuilder = TextChatBuilder(user).name("createCustomer_intro")
 		.setNextChatFunction(
 			Response(user.id, "customerCreate.hello")
 				.withCustomKeyboard("Create New Customer", "Add Existing Customer"),
@@ -31,9 +30,9 @@ class CreateCustomerChat(user: User) : ChatParent(user) {
 			}
 		)
 	
-	private fun importUser(): ChatBuilder {
+	private fun importUser(): TextChatBuilder {
 		var fullname: String = ""
-		return ChatBuilder(user).name("createCustomer_import")
+		return TextChatBuilder(user).name("createCustomer_import")
 			.then("customerCreate.import.name", { fullname = it })
 			.then("customerCreate.import.id", {
 				customer = Customer(id = it, fullName = fullname, agent = user.id)
@@ -54,9 +53,9 @@ class CreateCustomerChat(user: User) : ChatParent(user) {
 				})
 	}
 	
-	private fun createUser(): ChatBuilder {
+	private fun createUser(): TextChatBuilder {
 		var limit = 0.0
-		return ChatBuilder(user).name("createCustomer_new")
+		return TextChatBuilder(user).name("createCustomer_new")
 			.then(Response { "customerCreate.create.name" }, { customer = Customer(fullName = it, agent = user.id) })
 			.then("customerCreate.create.address", { customer.address = it })
 			.then("customerCreate.create.info", { customer.info = it })

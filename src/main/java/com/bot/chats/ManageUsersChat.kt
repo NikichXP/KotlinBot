@@ -1,13 +1,10 @@
 package com.bot.chats
 
-import com.bot.entity.ChatBuilder
+import com.bot.entity.TextChatBuilder
 import com.bot.entity.Response
 import com.bot.entity.User
 import com.bot.logic.Notifier
 import com.bot.repo.UserFactory
-import com.bot.util.*
-import java.util.concurrent.atomic.AtomicInteger
-import kotlin.streams.toList
 
 class ManageUsersChat(user: User) : ChatParent(user) {
 	
@@ -22,8 +19,8 @@ class ManageUsersChat(user: User) : ChatParent(user) {
 		.selectFunction { userSelection(it) }
 		.getChat()
 	
-	fun userSelection(user: User): ChatBuilder {
-		return ChatBuilder(this.user).name("manageUser.selected")
+	fun userSelection(user: User): TextChatBuilder {
+		return TextChatBuilder(this.user).name("manageUser.selected")
 			.setNextChatFunction(Response {
 				"""
 				User ${user.fullName}

@@ -4,6 +4,7 @@ import com.bot.chats.BaseChats
 import com.bot.chats.RegisterChat
 import com.bot.entity.*
 import com.bot.tgapi.Method
+import com.google.gson.JsonObject
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.sync.Mutex
 import java.time.LocalDateTime
@@ -11,10 +12,10 @@ import java.util.logging.Logger
 
 open class ChatProcessor(val user: User) {
 	
-	var chat: ChatBuilder =
-		if (user.type == User.Companion.Type.NONAME) RegisterChat(user).getChat()
-		else BaseChats.hello(user)
-	var message: String = "/home"
+	var chat: MessageChatBuilder =
+		if (user.type == User.Companion.Type.NONAME) RegisterChat(user).getChat().toMessageDrivenChat()
+		else BaseChats.hello(user).toMessageDrivenChat()
+	var message: Message = Message(id = "", senderId = user.id, text = "/home", textMessageJson = JsonObject())
 	private val lock = Mutex()
 	
 	init {
@@ -37,7 +38,7 @@ open class ChatProcessor(val user: User) {
 	private suspend fun work() {
 		chat.beforeExecution?.invoke()
 		try {
-			var selectedAction: ChatAction
+			var selectedAction: MessageChatAction
 			var i = 0
 			while (i < chat.actions.size) {
 				if (i < 0) {
@@ -46,15 +47,17 @@ open class ChatProcessor(val user: User) {
 				selectedAction = chat.actions[i++]
 				selectedAction.handle(lock)
 				while (!selectedAction.isCompleted()) {
-					if (message.contains("\uD83C\uDFE0") || message == "/help" || message == "/home") {
-						if (message == "/help") {
-							chat = BaseChats.getHelp(user)
+					if (message.text?.contains("\uD83C\uDFE0") == true ||
+						message.text?.equals("/help") == true ||
+						message.text?.equals("/home") == true) {
+						chat = if (message.text?.equals("/help") == true) {
+							BaseChats.getHelp(user).toMessageDrivenChat()
 						} else {
-							chat = BaseChats.hello(user)
+							BaseChats.hello(user).toMessageDrivenChat()
 						}
 						return
 					}
-					when (message) {
+					when (message.text) {
 						"/back" -> {
 							i -= 2
 						}
@@ -92,27 +95,27 @@ open class ChatProcessor(val user: User) {
 		chat.nextChatQuestion?.also {
 			sendMessage(it)
 			lock.lock()
-			if (message == "/home") {
-				chat = BaseChats.hello(user)
+			if (message.text?.equals("/home") == true) {
+				chat = BaseChats.hello(user).toMessageDrivenChat()
 				return
 			}
-			if (message == "/help") {
-				chat = BaseChats.getHelp(user)
+			if (message.text?.equals("/help") == true) {
+				chat = BaseChats.getHelp(user).toMessageDrivenChat()
 				return
 			}
 		}
 		try {
-			chat = chat.nextChatDeterminer.invoke(message)
+			chat = chat.nextChatDeterminer.invoke(message).toMessageDrivenChat()
 			chat.afterWorkAction?.invoke()
 		} catch (e: Exception) {
 			sendMessage("Exception on nextChatDeterminer, please send screenshot to support. Exception message:" +
 				e.localizedMessage + "\nTime: ${LocalDateTime.now()}")
 			e.printStackTrace()
-			chat = BaseChats.hello(user)
+			chat = BaseChats.hello(user).toMessageDrivenChat()
 		}
 	}
 	
-	fun input(text: String) {
+	fun input(text: Message) {
 		message = text
 		if (lock.isLocked)
 			lock.unlock()

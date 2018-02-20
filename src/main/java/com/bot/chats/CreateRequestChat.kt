@@ -4,11 +4,10 @@ import com.bot.Ctx
 import com.bot.entity.*
 import com.bot.repo.CreditObtainRepo
 import com.bot.repo.CustomerRepo
-import com.bot.entity.ChatBuilder
+import com.bot.entity.TextChatBuilder
 import com.bot.entity.requests.CreditIncreaseRequest
 import com.bot.entity.requests.CreditObtainRequest
 import com.bot.logic.Notifier
-import com.bot.logic.TextResolver
 import com.bot.repo.CreditIncreaseRepo
 import com.bot.util.GSheetsAPI
 import kotlinx.coroutines.experimental.launch
@@ -17,7 +16,6 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 
 class CreateRequestChat(user: User) : ChatParent(user) {
 	
@@ -34,16 +32,16 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 		this.customer = customer
 	}
 	
-	fun getChat(): ChatBuilder {
-		return ChatBuilder(user).name("createRequest_home")
+	fun getChat(): TextChatBuilder {
+		return TextChatBuilder(user).name("createRequest_home")
 			.setNextChatFunction("createRequest.hello", {
 				setCustomerList(it)
 				return@setNextChatFunction chooseClient()
 			})
 	}
 	
-	fun chooseClient(): ChatBuilder {
-		return ChatBuilder(user).name("createRequest_chooseClient")
+	fun chooseClient(): TextChatBuilder {
+		return TextChatBuilder(user).name("createRequest_chooseClient")
 			.setNextChatFunction {
 				return@setNextChatFunction ListChat(user, customerList)
 					.printFunction {
@@ -70,7 +68,7 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 	}
 	
 	
-	fun getAction() = ChatBuilder(user).name("createRequest_selectAction")
+	fun getAction() = TextChatBuilder(user).name("createRequest_selectAction")
 		.setNextChatFunction(Response(user, "createRequest.search.getAction")
 			.withCustomKeyboard("\uD83D\uDCB8 Credit release", "\uD83D\uDCB5 Limit increase", "❌ Cancel"),
 			{
@@ -82,9 +80,9 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 				}
 			})
 	
-	private fun getCreditReleaseChat(): ChatBuilder {
+	private fun getCreditReleaseChat(): TextChatBuilder {
 		val isBco = AtomicBoolean(false)
-		return ChatBuilder(user).name("createRequest_release")
+		return TextChatBuilder(user).name("createRequest_release")
 			.beforeExecution { creditObtainRequest = CreditObtainRequest(creator = user.id, customer = customer!!) }
 			.then("createRequest.creditRelease.amount", {
 				creditObtainRequest.amount = it.toDouble()
@@ -150,7 +148,7 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 			}
 	}
 	
-	private fun getCreditLimitIncreaseChat() = ChatBuilder(user).name("createRequest_increase")
+	private fun getCreditLimitIncreaseChat() = TextChatBuilder(user).name("createRequest_increase")
 		.beforeExecution { creditIncreaseRequest = CreditIncreaseRequest(creator = user.id, customer = customer!!) }
 		.then("createRequest.limitIncrease.amount", { creditIncreaseRequest.amount = it.toDouble() })
 		.then("createRequest.limitIncrease.comment", { creditIncreaseRequest.comment = it })
