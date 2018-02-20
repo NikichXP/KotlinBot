@@ -47,7 +47,8 @@ object Notifier {
 				Method.sendMessage(request.creator, "Your release request (ID #${request.id}) is now: \"${request.status}\"\n" +
 					"Company: ${request.customer.fullName} (${request.customer.id})\n" +
 					"Amount: ${request.amount}, Editor: ${userName(request.approver)}\nComment: ${request.comment}\n" +
-					"Release ID: ${request.releaseId}.\nEditor: ${userName(request.approver)}")
+					"Release ID: ${request.releaseId}.\nEditor: ${userName(request.approver)}"
+					+ if (request.optionalComment != null) "\nReason:${request.optionalComment}" else "")
 				if (request.approver != null) {
 					Method.sendMessage(request.approver!!, "You updated release request (ID #${request.id}), is now: \"${request.status}\"\n" +
 						"Company: ${request.customer.fullName} (${request.customer.id})\n" +
@@ -59,7 +60,8 @@ object Notifier {
 				Method.sendMessage(request.creator,
 					"Your request: ${request.type} (ID #${request.id}) is now: \"${request.status}\"\n" +
 						"Company: ${request.customer.fullName} (${request.customer.id})\n" +
-						"Amount: ${request.amount}, Editor: ${userName(request.approver)}\nComment: ${request.comment}")
+						"Amount: ${request.amount}, Editor: ${userName(request.approver)}\nComment: ${request.comment}"
+						+ if (request.optionalComment != null) "\nReason:${request.optionalComment}" else "")
 				if (request.approver != null) {
 					Method.sendMessage(request.approver!!, "You updated request: ${request.type} (ID #${request.id}), is now: \"${request.status}\"\n" +
 						"Company: ${request.customer.fullName} (${request.customer.id})\n" +

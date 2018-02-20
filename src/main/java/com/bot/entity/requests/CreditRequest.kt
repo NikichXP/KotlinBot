@@ -20,6 +20,7 @@ interface CreditRequest {
 	var comment: String
 	var opened: LocalDateTime
 	var closed: LocalDateTime?
+	var optionalComment: String?
 	
 	fun getText() =
 		"""Type: ${this.type}

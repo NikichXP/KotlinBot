@@ -55,19 +55,11 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 					when (it.split(" ").last().toLowerCase()) {
 						"cancel"  -> return@setNextChatFunction getChat()
 						"approve" -> {
+							request.optionalComment = null
 							return@setNextChatFunction if (request is CreditObtainRequest) approveRelease() else approveCreditLimit()
 						}
 						"decline" -> {
-							select.status = Status.DECLINED.value
-							select.approver = user.id
-							Notifier.notifyOnUpdate(select)
-							if (request is CreditObtainRequest) creditObtainsRepo.save(request) else creditIncreaseRepo.save(request as CreditIncreaseRequest)
-							launch {
-								gSheetsAPI.updateCellsWhere(page = "Requests", criteria = { it[0] == request.id }, updateFx = {
-									it[10] = request.status
-									return@updateCellsWhere it
-								})
-							}
+							return@setNextChatFunction provideDeclineReason(request)
 						}
 						"home"    -> {
 						}
@@ -81,7 +73,26 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 			)
 	}
 	
-	private fun approveCreditLimit(): ChatBuilder {
+	private fun provideDeclineReason(request: CreditRequest): ChatBuilder = ChatBuilder(user)
+		.setNextChatFunction("Enter a decline reason or /cancel to go back", {
+			if (it == "/cancel") {
+				return@setNextChatFunction viewRequest(request)
+			}
+			request.optionalComment = it
+			select.status = Status.DECLINED.value
+			select.approver = user.id
+			Notifier.notifyOnUpdate(select)
+			if (request is CreditObtainRequest) creditObtainsRepo.save(request) else creditIncreaseRepo.save(request as CreditIncreaseRequest)
+			launch {
+				gSheetsAPI.updateCellsWhere(page = "Requests", criteria = { it[0] == request.id }, updateFx = {
+					it[10] = request.status
+					return@updateCellsWhere it
+				})
+			}
+			return@setNextChatFunction BaseChats.hello(user)
+		})
+	
+	fun approveCreditLimit(): ChatBuilder {
 		val oldAmount = select.amount
 		val ret = ChatBuilder(user).name("pendingRequests_approveCreditLimit")
 			.setNextChatFunction("pendingRequest.enterLimitAmount", {
