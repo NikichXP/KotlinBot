@@ -61,7 +61,7 @@ class CreateCustomerChat(user: User) : ChatParent(user) {
 			.then("customerCreate.create.info", { customer.info = it })
 			.then("customerCreate.create.creditLimit.request", {
 				try {
-					limit = it.toDouble()
+					limit = it.filter { it != ',' }.toDouble()
 				} catch (e: Exception) {
 					sendMessage("customerCreate.create.creditLimit.request.error.parse")
 				}

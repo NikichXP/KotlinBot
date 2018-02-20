@@ -97,7 +97,7 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 				if (it.contains("cancel")) {
 					return@setNextChatFunction getChat()
 				} else {
-					select.approve(user, it.toDouble())
+					select.approve(user, it.filter { it != ',' }.toDouble())
 					creditIncreaseRepo.save(select as CreditIncreaseRequest)
 					launch {
 						gSheetsAPI.updateCellsWhere(page = "Requests", criteria = { it[0] == select.id }, updateFx = {
