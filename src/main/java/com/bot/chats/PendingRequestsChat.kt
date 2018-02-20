@@ -74,7 +74,7 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 	}
 	
 	private fun provideDeclineReason(request: CreditRequest): ChatBuilder = ChatBuilder(user)
-		.setNextChatFunction(Response { "Enter a decline reason or /cancel to go back" }, {
+		.setNextChatFunction(Response(user.id, "Enter a decline reason or /cancel to go back"), {
 			if (it == "/cancel") {
 				return@setNextChatFunction viewRequest(request)
 			}
