@@ -26,7 +26,7 @@ object UserFactory {
 	
 	operator fun get(id: String): User = userMap.getOrPut(id, {
 		userRepo.findById(id)
-			.orElseThrow { IllegalArgumentException("Unknown user") }
+			.orElseThrow { IllegalArgumentException("Unknown user: $id") }
 	})
 	
 	fun save(id: String) {

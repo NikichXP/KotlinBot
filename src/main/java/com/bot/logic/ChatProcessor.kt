@@ -7,6 +7,7 @@ import com.bot.tgapi.Method
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.sync.Mutex
 import java.time.LocalDateTime
+import java.util.logging.Logger
 
 open class ChatProcessor(val user: User) {
 	
@@ -110,7 +111,11 @@ open class ChatProcessor(val user: User) {
 	}
 	
 	private fun sendMessage(response: Response) {
-		Method.sendMessage(response.ensureUser(user.id))
+		try {
+			Method.sendMessage(response.ensureUser(user.id))
+		} catch (e: Exception) {
+			Logger.getAnonymousLogger().info("Here is exception, don't worry.")
+		}
 	}
 	
 	private fun sendMessage(text: String) {
