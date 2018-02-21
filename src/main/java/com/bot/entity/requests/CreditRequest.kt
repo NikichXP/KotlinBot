@@ -21,7 +21,7 @@ interface CreditRequest {
 	var opened: LocalDateTime
 	var closed: LocalDateTime?
 	var optionalComment: String?
-	var documents: MutableList<String>
+	var documents: MutableList<Pair<String, String>>
 	
 	fun getText() =
 		"""Type: ${this.type}
@@ -36,6 +36,8 @@ interface CreditRequest {
 		Opened: ${this.opened}
 		${if (closed != null) ("Closed: " + closed + "\nTime opened: " + this.closed!!.getTimeDiff(this.opened)) else "Not closed"}
 		Status: ${TextResolver.getText(this.status.toLowerCase())}
+		Comment: $comment
+		Documents: ${documents.stream().map { it.second }.reduce { a, b -> "$a\n$b" }.map { "\n$it" }.orElse("No documents")}
 		""".trimMargin()
 	
 	fun approve(user: User, amount: Double = this.amount) {

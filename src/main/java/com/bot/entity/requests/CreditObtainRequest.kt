@@ -14,7 +14,7 @@ data class CreditObtainRequest(@Id override val id: String = UUID.randomUUID().t
                                override var approver: String? = null,
                                var pickupDate: LocalDate? = null) : CreditRequest {
 	
-	override var documents: MutableList<String> = mutableListOf()
+	override var documents: MutableList<Pair<String, String>> = mutableListOf()
 	override var opened: LocalDateTime = LocalDateTime.now()
 	override var closed: LocalDateTime? = null
 	
