@@ -156,7 +156,7 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 	}
 	
 	fun documentEditorChat(request: CreditRequest) = MessageChatBuilder(user)
-		.cycleAction({ it.text == null }, Response { "Send documents. White any text to end this. If you quit it by /home progress will be lost." },
+		.cycleAction({ it.text == null }, Response { "Send documents. White any text to end this. If you quit it by /home progress will be lost." }.withCustomKeyboard("Done"),
 			{
 				request.documents.add(it.document ?: throw IllegalArgumentException("Unexpected type of data"))
 				sendMessage("Document accepted: there are ${request.documents.size} documents related to request.")

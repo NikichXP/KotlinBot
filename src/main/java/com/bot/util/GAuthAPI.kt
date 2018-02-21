@@ -26,6 +26,7 @@ import java.io.IOException
 import java.io.InputStreamReader
 
 import com.nikichxp.util.Async.async
+import java.util.*
 
 @RestController
 @RequestMapping("/api/google/auth")
@@ -53,7 +54,7 @@ constructor(context: ApplicationContext) {
 				
 			}
 			try {
-				refresh_token = System.getenv("google_auth_refresh-token") ?: "1/IdTnDqD3pCkwBOcIptek6uIco3-FwTaUYKAlwlzLmF8"
+				refresh_token = Optional.ofNullable(System.getenv("google_auth_refresh-token")).orElse("1/IdTnDqD3pCkwBOcIptek6uIco3-FwTaUYKAlwlzLmF8")
 				updateAccessToken()
 			} catch (e: Exception) {
 				println("Cannot update token. Need re-auth.")

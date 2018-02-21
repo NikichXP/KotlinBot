@@ -10,12 +10,12 @@ import org.springframework.http.client.ClientHttpResponse
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.client.ResponseErrorHandler
 import org.springframework.web.client.RestTemplate
-import java.util.Arrays
 import com.nikichxp.util.Json
 import org.springframework.beans.factory.annotation.Autowired
 import org.apache.http.impl.client.HttpClients
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import java.nio.charset.Charset
+import java.util.*
 
 
 //TODO Cleanup response logging
@@ -24,7 +24,7 @@ import java.nio.charset.Charset
 class GSheetsAPI
 @Autowired constructor(val gAuthAPI: GAuthAPI) {
 	
-	val sheetId = System.getenv("google_sheets_main-sheet-id") ?: "1H_LgnsVg_3WxD9nXE76KzGNEl40gA5OUlwXmOCmp-e8"
+	val sheetId = Optional.ofNullable("google_sheets_main-sheet-id").orElse("1H_LgnsVg_3WxD9nXE76KzGNEl40gA5OUlwXmOCmp-e8")
 	
 	@Synchronized
 	fun createPage(sheetId: String, title: String): Int {
