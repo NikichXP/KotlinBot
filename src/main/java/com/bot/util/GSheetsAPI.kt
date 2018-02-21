@@ -24,7 +24,7 @@ import java.nio.charset.Charset
 class GSheetsAPI
 @Autowired constructor(val gAuthAPI: GAuthAPI) {
 	
-	val sheetId = "1H_LgnsVg_3WxD9nXE76KzGNEl40gA5OUlwXmOCmp-e8"
+	val sheetId = System.getenv("google_sheets_main-sheet-id") ?: "1H_LgnsVg_3WxD9nXE76KzGNEl40gA5OUlwXmOCmp-e8"
 	
 	@Synchronized
 	fun createPage(sheetId: String, title: String): Int {

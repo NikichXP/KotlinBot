@@ -53,7 +53,7 @@ constructor(context: ApplicationContext) {
 				
 			}
 			try {
-				refresh_token = "1/IdTnDqD3pCkwBOcIptek6uIco3-FwTaUYKAlwlzLmF8"
+				refresh_token = System.getenv("google_auth_refresh-token") ?: "1/IdTnDqD3pCkwBOcIptek6uIco3-FwTaUYKAlwlzLmF8"
 				updateAccessToken()
 			} catch (e: Exception) {
 				println("Cannot update token. Need re-auth.")
