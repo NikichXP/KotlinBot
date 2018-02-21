@@ -7,8 +7,10 @@ import com.bot.repo.CustomerRepo
 import com.bot.entity.TextChatBuilder
 import com.bot.entity.requests.CreditIncreaseRequest
 import com.bot.entity.requests.CreditObtainRequest
+import com.bot.entity.requests.CreditRequest
 import com.bot.logic.Notifier
 import com.bot.repo.CreditIncreaseRepo
+import com.bot.tgapi.Method
 import com.bot.util.GSheetsAPI
 import com.bot.util.isNot
 import kotlinx.coroutines.experimental.launch
@@ -83,7 +85,38 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 	
 	private fun getCreditReleaseChat(): TextChatBuilder {
 		val isBco = AtomicBoolean(false)
-		return TextChatBuilder(user).name("createRequest_release")
+		val chat2 = TextChatBuilder(user)
+			.then("createRequest.creditRelease.comment", { creditObtainRequest.comment = it })
+			.setOnCompleteMessage(Response { "Your request #${creditObtainRequest.id} was written to DB. Thanks." })
+			.setOnCompleteAction {
+				creditObtainsRepo.save(creditObtainRequest)
+				launch {
+					val select = creditObtainRequest
+					sheetsAPI.writeToTable("default", "Requests", -1,
+						arrayOf(select.id,
+							LocalDate.now().toString(),
+							select.customer.id,
+							user.fullName!!,
+							select.customer.fullName,
+							select.customer.accountId ?: "No account ID",
+							select.fb,
+							select.truckId ?: "Carrier",
+							"$" + DecimalFormat("#,###.##").format(creditObtainRequest.amount),
+							select.type,
+							select.status,
+							"", //Documents
+							select.customer.info ?: "No Info",
+							select.releaseId,
+							"-",
+							"-",
+							"-",
+							select.comment
+						)
+					)
+				}
+				Notifier.notifyOnCreate(creditObtainRequest)
+			}
+		val chat1 = TextChatBuilder(user).name("createRequest_release")
 			.beforeExecution { creditObtainRequest = CreditObtainRequest(creator = user.id, customer = customer!!) }
 			.then("createRequest.creditRelease.amount", {
 				creditObtainRequest.amount = it.filter { it.isNot(',', '$') }.toDouble()
@@ -117,37 +150,19 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 			})
 			.thenIf({ isBco.get() }, "Enter truck #", { creditObtainRequest.truckId = it })
 			.then("createRequest.creditRelease.fb", { creditObtainRequest.fb = it })
-			.then("createRequest.creditRelease.comment", { creditObtainRequest.comment = it })
-			.setOnCompleteMessage(Response { "Your request #${creditObtainRequest.id} was written to DB. Thanks." })
-			.setOnCompleteAction {
-				creditObtainsRepo.save(creditObtainRequest)
-				launch {
-					val select = creditObtainRequest
-					sheetsAPI.writeToTable("default", "Requests", -1,
-						arrayOf(select.id,
-							LocalDate.now().toString(),
-							select.customer.id,
-							user.fullName!!,
-							select.customer.fullName,
-							select.customer.accountId ?: "No account ID",
-							select.fb,
-							select.truckId ?: "Carrier",
-							"$" + DecimalFormat("#,###.##").format(creditObtainRequest.amount),
-							select.type,
-							select.status,
-							"", //Documents
-							select.customer.info ?: "No Info",
-							select.releaseId,
-							"-",
-							"-",
-							"-",
-							select.comment
-						)
-					)
-				}
-				Notifier.notifyOnCreate(creditObtainRequest)
-			}
+			.also { it.nextChatDeterminer = { documentEditorChat(creditObtainRequest).also { it.nextChatDeterminer = { chat2 } } } }
+		
+		return chat1
 	}
+	
+	fun documentEditorChat(request: CreditRequest) = MessageChatBuilder(user)
+		.cycleAction({ it.text == null }, Response { "Send documents. White any text to end this. If you quit it by /home progress will be lost." },
+			{
+				request.documents.add(it.document?.first ?: throw IllegalArgumentException("Unexpected type of data"))
+				sendMessage("Document accepted: there are ${request.documents.size} documents related to request.")
+			},
+			{ if (request is CreditObtainRequest) creditObtainsRepo.save(request) else creditIncreaseRepo.save(request as CreditIncreaseRequest) })
+	
 	
 	private fun getCreditLimitIncreaseChat() = TextChatBuilder(user).name("createRequest_increase")
 		.beforeExecution { creditIncreaseRequest = CreditIncreaseRequest(creator = user.id, customer = customer!!) }
@@ -156,6 +171,7 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 		.setOnCompleteAction {
 			createLimitEntry(customer!!, creditIncreaseRequest)
 		}
+		.also { it.nextChatDeterminer = { documentEditorChat(creditIncreaseRequest) } }
 	
 	fun createLimitEntry(customer: Customer, type: String, comment: String, amount: Double): CreditIncreaseRequest {
 		val creditIncreaseRequest = CreditIncreaseRequest(creator = user.id, customer = customer)

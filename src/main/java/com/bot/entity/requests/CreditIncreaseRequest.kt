@@ -12,7 +12,7 @@ class CreditIncreaseRequest(@Id override var id: String = UUID.randomUUID().toSt
                             override var approver: String? = null,
                             override var amount: Double = 0.0) : CreditRequest {
 	
-	
+	override var documents: MutableList<String> = mutableListOf()
 	override var opened: LocalDateTime = LocalDateTime.now()
 	override var closed: LocalDateTime? = null
 	

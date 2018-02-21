@@ -1,6 +1,8 @@
 package com.bot.entity
 
 import com.bot.chats.BaseChats
+import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
 import kotlinx.coroutines.experimental.sync.Mutex
 import java.util.LinkedList
 
@@ -102,6 +104,10 @@ class MessageChatBuilder(val user: User) : AbstractChatBuilder {
 		)
 	}
 	
+	fun cycleAction(cycleCondition: (Message) -> Boolean, response: Response, action: (Message) -> Unit, postAction: () -> Unit = {}) = also {
+		actions.add(CycledMessageChatAction(cycleCondition, response.ensureUser(user.id), action).also { it.postCycleAction = postAction })
+	}
+	
 	fun beforeExecution(action: () -> Unit) = also { this.beforeExecution = action }
 	
 	fun setNextChatFunction(text: String, function: (Message) -> MessageChatBuilder) = setNextChatFunction(function).also { nextChatQuestion = Response(user.id, text) }
@@ -120,19 +126,27 @@ class MessageChatBuilder(val user: User) : AbstractChatBuilder {
 	
 }
 
-interface ChatAction {
+interface AbstractChatAction<T> {
 	
 	suspend fun handle(lock: Mutex)
-	fun action(text: String)
-	fun isCompleted(): Boolean
+	suspend fun action(message: T)
+	fun isCompleted(message: T): Boolean
+	
+}
+
+interface ChatAction : AbstractChatAction<String> {
+	
+	override suspend fun handle(lock: Mutex)
+	override suspend fun action(message: String)
+	override fun isCompleted(message: String): Boolean
 	fun toMessageAction(): MessageChatAction
 	
 }
 
-interface MessageChatAction {
-	suspend fun handle(lock: Mutex)
-	fun action(text: Message)
-	fun isCompleted(): Boolean
+interface MessageChatAction : AbstractChatAction<Message> {
+	override suspend fun handle(lock: Mutex)
+	override suspend fun action(message: Message)
+	override fun isCompleted(message: Message): Boolean
 }
 
 class DefaultChatAction(var response: Response, var action: (String) -> Unit) : ChatAction {
@@ -144,15 +158,15 @@ class DefaultChatAction(var response: Response, var action: (String) -> Unit) : 
 		lock.lock()
 	}
 	
-	override fun action(text: String) {
-		this.action.invoke(text)
+	override suspend fun action(message: String) {
+		this.action.invoke(message)
 		isCompleted = true
 	}
 	
-	override fun isCompleted() = isCompleted
+	override fun isCompleted(message: String) = isCompleted
 	
 	override fun toMessageAction(): MessageChatAction {
-		return DefaultMessageChatAction(response, { action(it.text!!) })
+		return DefaultMessageChatAction(response, { launch { action(it.text!!) } })
 	}
 	
 }
@@ -166,12 +180,12 @@ class DefaultMessageChatAction(var response: Response, var action: (Message) -> 
 		lock.lock()
 	}
 	
-	override fun action(text: Message) {
-		this.action.invoke(text)
+	override suspend fun action(message: Message) {
+		this.action.invoke(message)
 		isCompleted = true
 	}
 	
-	override fun isCompleted() = isCompleted
+	override fun isCompleted(message: Message) = isCompleted
 	
 }
 
@@ -194,16 +208,16 @@ class OptionalChatAction(var workOrNot: () -> Boolean, var response: Response, v
 		}
 	}
 	
-	override fun action(text: String) {
+	override suspend fun action(message: String) {
 		if (isRequestSent) {
-			this.action.invoke(text)
+			this.action.invoke(message)
 		}
 		isCompleted = true
 	}
 	
-	override fun toMessageAction(): MessageChatAction = OptionalMessageChatAction(workOrNot, response, { action(it.text!!) })
+	override fun toMessageAction(): MessageChatAction = OptionalMessageChatAction(workOrNot, response, { launch { action(it.text!!) } })
 	
-	override fun isCompleted() = isCompleted
+	override fun isCompleted(message: String) = isCompleted
 	
 }
 
@@ -226,13 +240,39 @@ class OptionalMessageChatAction(var workOrNot: () -> Boolean, var response: Resp
 		}
 	}
 	
-	override fun action(text: Message) {
+	override suspend fun action(message: Message) {
 		if (isRequestSent) {
-			this.action.invoke(text)
+			this.action.invoke(message)
 		}
 		isCompleted = true
 	}
 	
-	override fun isCompleted() = isCompleted
+	override fun isCompleted(message: Message) = isCompleted
+	
+}
+
+class CycledMessageChatAction(var cycleCondition: (Message) -> Boolean, var response: Response, var action: (Message) -> Unit) : MessageChatAction {
+	
+	private lateinit var lock: Mutex
+	var postCycleAction: () -> Unit = {}
+	
+	override suspend fun handle(lock: Mutex) {
+		response.send()
+		this.lock = lock.also { it.lock() }
+	}
+	
+	override suspend fun action(message: Message) {
+		action.invoke(message)
+		response.send()
+		lock.lock()
+	}
+	
+	override fun isCompleted(message: Message): Boolean {
+		if (cycleCondition(message)) {
+			return false
+		}
+		postCycleAction()
+		return true
+	}
 	
 }

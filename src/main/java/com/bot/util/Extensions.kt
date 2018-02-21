@@ -40,8 +40,8 @@ fun String.mapIf(predicate: (String) -> Boolean, mapper: (String) -> String): St
 fun Char.isNot(vararg chars: Char): Boolean {
 	for (char in chars) {
 		if (this == char) {
-			return true
+			return false
 		}
 	}
-	return false
+	return true
 }

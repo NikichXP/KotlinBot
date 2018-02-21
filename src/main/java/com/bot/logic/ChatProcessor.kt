@@ -46,7 +46,7 @@ open class ChatProcessor(val user: User) {
 				}
 				selectedAction = chat.actions[i++]
 				selectedAction.handle(lock)
-				while (!selectedAction.isCompleted()) {
+				while (!selectedAction.isCompleted(message)) {
 					if (message.text?.contains("\uD83C\uDFE0") == true ||
 						message.text?.equals("/help") == true ||
 						message.text?.equals("/home") == true) {

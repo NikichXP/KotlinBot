@@ -21,6 +21,7 @@ interface CreditRequest {
 	var opened: LocalDateTime
 	var closed: LocalDateTime?
 	var optionalComment: String?
+	var documents: MutableList<String>
 	
 	fun getText() =
 		"""Type: ${this.type}
