@@ -9,6 +9,7 @@ import com.bot.entity.requests.Status
 import com.bot.logic.TextResolver.getText
 import com.bot.repo.CreditIncreaseRepo
 import com.bot.repo.CreditObtainRepo
+import com.bot.tgapi.Method
 import java.util.concurrent.atomic.AtomicInteger
 
 class MyRequestsChat(user: User) : ChatParent(user) {
@@ -50,18 +51,26 @@ class MyRequestsChat(user: User) : ChatParent(user) {
 	fun modifyRequest(): TextChatBuilder {
 		return TextChatBuilder(user).name("myRequests_modifyRequest")
 			.setNextChatFunction(Response {
-				select.getText() + "\n\n" + getText("myRequests.view.requestActions")
+				select.getText(true) + "\n\n" + getText("myRequests.view.requestActions")
 			}, {
-				return@setNextChatFunction when (it) {
-					"/back"    -> this.getChat()
-					"/decline", "/cancel" -> {
+				return@setNextChatFunction when {
+					it == "/back"                       -> this.getChat()
+					it == "/decline" || it == "/cancel" -> {
 						if (select.status != Status.APPROVED.value) {
 							creditIncreaseRepo.deleteById(select.id)
 							creditObtainsRepo.deleteById(select.id)
 						}
 						this.getChat()
 					}
-					else       -> BaseChats.hello(user)
+					it.startsWith("/delete")            -> {
+						select.documents.removeAt(it.substring(7).toInt())
+						modifyRequest()
+					}
+					it.startsWith("/show")              -> {
+						Method.sendDocument(user.id, select.documents[it.substring(5).toInt()])
+						modifyRequest()
+					}
+					else                                -> BaseChats.hello(user)
 				}
 			})
 	}

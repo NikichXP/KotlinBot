@@ -13,6 +13,7 @@ import com.bot.logic.TextResolver
 import com.bot.repo.CreditIncreaseRepo
 import com.bot.repo.CreditObtainRepo
 import com.bot.repo.CustomerRepo
+import com.bot.tgapi.Method
 import com.bot.util.GSheetsAPI
 import com.bot.util.isNot
 import kotlinx.coroutines.experimental.launch
@@ -44,11 +45,11 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 			.getChat()
 	}
 	
-	private fun viewRequest(request: CreditRequest): TextChatBuilder {
+	private fun viewRequest(request: CreditRequest, silent: Boolean = false): TextChatBuilder {
 		select = request
 		return TextChatBuilder(user)
 			.setNextChatFunction(
-				Response { select.getText() + TextResolver.getText("pendingRequest.actionSelect") }
+				Response { if (!silent) select.getText(true) + "\n" + TextResolver.getText("pendingRequest.actionSelect") else "" }
 					.withCustomKeyboard("❌ Cancel", "\uD83C\uDFBE Approve", "\uD83D\uDD34 Decline", "\uD83C\uDFE0 Home"),
 				{
 					when (it.split(" ").last().toLowerCase()) {
@@ -63,6 +64,14 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 						"home"    -> {
 						}
 						else      -> {
+							if (it.startsWith("/delete")) {
+								select.documents.removeAt(it.substring(7).toInt())
+								return@setNextChatFunction viewRequest(request)
+							}
+							if (it.startsWith("/show")) {
+								Method.sendDocument(user.id, select.documents[it.substring(5).toInt()])
+								return@setNextChatFunction viewRequest(request, true)
+							}
 							sendMessage("pendingRequest.error.unknownAction")
 							return@setNextChatFunction getChat()
 						}

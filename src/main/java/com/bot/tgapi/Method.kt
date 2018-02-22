@@ -54,6 +54,10 @@ object Method {
 		method("setWebhook", "url", hostName)
 	}
 	
+	fun sendDocument(chatId: String, pair: Pair<String, String>) {
+		method("sendDocument", "chat_id", chatId, "document", pair.first)
+	}
+	
 	fun method(name: String, vararg paramsArr: String) {
 		val params = HashMap<String, String>()
 		(0 until (paramsArr.size / 2)).forEach {
@@ -76,5 +80,7 @@ object Method {
 		val entity = HttpEntity(requestBody.toByteArray(Charset.forName("UTF-8")), headers)
 		restTemplate.postForObject(baseURL + name, entity, String::class.java)
 	}
+	
+	
 	
 }

@@ -7,6 +7,7 @@ import com.bot.repo.UserFactory
 import com.bot.util.getTimeDiff
 import java.text.DecimalFormat
 import java.time.LocalDateTime
+import java.util.concurrent.atomic.AtomicInteger
 
 interface CreditRequest {
 	
@@ -23,8 +24,9 @@ interface CreditRequest {
 	var optionalComment: String?
 	var documents: MutableList<Pair<String, String>>
 	
-	fun getText() =
-		"""Type: ${this.type}
+	fun getText(showFiles: Boolean = false): String {
+		val ctr = AtomicInteger(0)
+		return """Type: ${this.type}
 		
 		Customer: ${this.customer.fullName}, ID: ${this.customer.id}
 		Created by agent (id): ${this.customer.agent} // ${UserFactory[this.customer.agent].fullName}
@@ -37,8 +39,9 @@ interface CreditRequest {
 		${if (closed != null) ("Closed: " + closed + "\nTime opened: " + this.closed!!.getTimeDiff(this.opened)) else "Not closed"}
 		Status: ${TextResolver.getText(this.status.toLowerCase())}
 		Comment: $comment
-		Documents: ${documents.stream().map { it.second }.reduce { a, b -> "$a\n$b" }.map { "\n$it" }.orElse("No documents")}
+		Documents: ${documents.stream().map { it.second + if (showFiles) " /show${ctr.get()} /delete${ctr.getAndIncrement()} " else "" }.reduce { a, b -> "$a\n$b" }.map { "\n$it" }.orElse("No documents")}
 		""".trimMargin()
+	}
 	
 	fun approve(user: User, amount: Double = this.amount) {
 		this.status = Status.APPROVED.value
