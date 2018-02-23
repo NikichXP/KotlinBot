@@ -104,13 +104,14 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 							"$" + DecimalFormat("#,###.##").format(creditObtainRequest.amount),
 							select.type,
 							select.status,
-							"", //Documents
+							select.documents.stream().map { it.second }.reduce { a, b -> a + "\n" + b }.orElse("-"),
 							select.customer.info ?: "No Info",
 							select.releaseId,
 							"-",
 							"-",
 							"-",
-							select.comment
+							select.comment,
+							select.optionalComment ?: ""
 						)
 					)
 				}
@@ -156,7 +157,7 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 	}
 	
 	fun documentEditorChat(request: CreditRequest) = MessageChatBuilder(user)
-		.cycleAction({ it.text == null }, Response { "Send documents. White any text to end this. If you quit it by /home progress will be lost." }.withCustomKeyboard("Done"),
+		.cycleAction({ it.text == null }, Response { "Send documents. Write any text to end this. If you quit it by /home progress will be lost." }.withCustomKeyboard("Done"),
 			{
 				request.documents.add(it.document ?: throw IllegalArgumentException("Unexpected type of data"))
 				sendMessage("Document accepted: there are ${request.documents.size} documents related to request.")
@@ -196,13 +197,14 @@ class CreateRequestChat(user: User) : ChatParent(user) {
 					"-",
 					creditIncreaseRequest.type,
 					creditIncreaseRequest.status,
-					"", //Documents
+					creditIncreaseRequest.documents.stream().map { it.second }.reduce { a, b -> a + "\n" + b }.orElse("-"),
 					creditIncreaseRequest.customer.info ?: "No Info",
 					"-", //release ID
 					"$" + DecimalFormat("#,###.##").format(creditIncreaseRequest.amount),
 					"-",
 					"-",
-					creditIncreaseRequest.comment
+					creditIncreaseRequest.comment,
+					creditIncreaseRequest.optionalComment ?: ""
 				)
 			)
 		}

@@ -94,6 +94,7 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 			launch {
 				gSheetsAPI.updateCellsWhere(page = "Requests", criteria = { it[0] == request.id }, updateFx = {
 					it[10] = request.status
+					it[18] = request.optionalComment ?: " --- "
 					return@updateCellsWhere it
 				})
 			}
