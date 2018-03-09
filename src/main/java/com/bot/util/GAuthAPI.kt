@@ -40,28 +40,25 @@ constructor(context: ApplicationContext) {
 	var accessToken: String? = null //gets after stage #3. if null - cannot write to Gdisk
 	
 	init {
-		async {
-			client_id = context.environment.getProperty("google.client.id")
-			client_secret = System.getenv("google_client_secret")
-			if (client_secret == null) {
-				try {
-					client_secret = BufferedReader(
-						InputStreamReader(
-							FileInputStream("C:/google_client_secret.dat"))
-					).readLine()
-				} catch (ignored: Exception) {
-				}
-				
-			}
+		client_id = context.environment.getProperty("google.client.id")
+		client_secret = System.getenv("google_client_secret")
+		if (client_secret == null) {
 			try {
-				refresh_token = Optional.ofNullable(System.getenv("google_auth_refresh-token")).orElse("1/IdTnDqD3pCkwBOcIptek6uIco3-FwTaUYKAlwlzLmF8")
-				updateAccessToken()
-			} catch (e: Exception) {
-				println("Cannot update token. Need re-auth.")
+				client_secret = BufferedReader(
+					InputStreamReader(
+						FileInputStream("C:/google_client_secret.dat"))
+				).readLine()
+			} catch (ignored: Exception) {
 			}
-			
-			println("GSheets service started, " + (refresh_token != null) + " & " + (this.accessToken != null))
 		}
+		try {
+			refresh_token = Optional.ofNullable(System.getenv("google_auth_refresh-token")).orElse("1/IdTnDqD3pCkwBOcIptek6uIco3-FwTaUYKAlwlzLmF8")
+			updateAccessToken()
+		} catch (e: Exception) {
+			println("Cannot update token. Need re-auth.")
+		}
+		
+		println("GSheets service started, " + (refresh_token != null) + " & " + (this.accessToken != null))
 	}
 	
 	@GetMapping("/status")

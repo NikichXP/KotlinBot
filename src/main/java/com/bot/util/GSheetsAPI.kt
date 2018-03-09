@@ -1,5 +1,7 @@
 package com.bot.util
 
+import com.bot.Ctx
+import com.bot.tgapi.Method
 import com.google.gson.Gson
 import com.google.gson.JsonParser
 import com.nikichxp.util.JsonUtil
@@ -16,7 +18,7 @@ import org.apache.http.impl.client.HttpClients
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import java.nio.charset.Charset
 import java.util.*
-
+import javax.annotation.PostConstruct
 
 //TODO Cleanup response logging
 @RestController
@@ -24,7 +26,20 @@ import java.util.*
 class GSheetsAPI
 @Autowired constructor(val gAuthAPI: GAuthAPI) {
 	
-	val sheetId = Optional.ofNullable("google_sheets_main-sheet-id").orElse("1H_LgnsVg_3WxD9nXE76KzGNEl40gA5OUlwXmOCmp-e8")
+	val sheetId = Optional.ofNullable(System.getenv("google_sheets_main-sheet-id")).orElse("1H_LgnsVg_3WxD9nXE76KzGNEl40gA5OUlwXmOCmp-e8")
+	
+	@PostConstruct
+	fun checkToken() {
+		val responseCode = restTemplate
+			.getForEntity("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/Requests!A1:A10000"
+				+ "?majorDimension=COLUMNS&access_token="
+				+ gAuthAPI.accessToken, String::class.java).statusCodeValue
+		if (responseCode != 200) {
+			Ctx.AUTHORS_TELEGRAMS.forEach {
+				Method.sendMessage(it, "Response for testing Google Sheets: $responseCode")
+			}
+		}
+	}
 	
 	@Synchronized
 	fun createPage(sheetId: String, title: String): Int {

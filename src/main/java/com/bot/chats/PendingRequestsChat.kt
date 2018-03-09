@@ -87,9 +87,9 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 				return@setNextChatFunction viewRequest(request)
 			}
 			request.optionalComment = it
-			select.status = Status.DECLINED.value
-			select.approver = user.id
-			Notifier.notifyOnUpdate(select)
+			request.status = Status.DECLINED.value
+			request.approver = user.id
+			Notifier.notifyOnUpdate(request)
 			if (request is CreditObtainRequest) creditObtainsRepo.save(request) else creditIncreaseRepo.save(request as CreditIncreaseRequest)
 			launch {
 				gSheetsAPI.updateCellsWhere(page = "Requests", criteria = { it[0] == request.id }, updateFx = {
