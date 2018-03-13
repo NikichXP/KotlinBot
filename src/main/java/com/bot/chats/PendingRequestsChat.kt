@@ -59,7 +59,7 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 							return@setNextChatFunction if (request is CreditObtainRequest) approveRelease() else approveCreditLimit()
 						}
 						"decline" -> {
-							return@setNextChatFunction provideDeclineReason(request)
+							return@setNextChatFunction provideDeclineReason()
 						}
 						"home"    -> {
 						}
@@ -81,20 +81,21 @@ class PendingRequestsChat(user: User) : ChatParent(user) {
 			)
 	}
 	
-	private fun provideDeclineReason(request: CreditRequest): TextChatBuilder = TextChatBuilder(user)
+	private fun provideDeclineReason(): TextChatBuilder = TextChatBuilder(user)
 		.setNextChatFunction(Response(user.id, "Enter a decline reason or /cancel to go back"), {
+			val reason = it
 			if (it == "/cancel") {
-				return@setNextChatFunction viewRequest(request)
+				return@setNextChatFunction viewRequest(select)
 			}
-			request.optionalComment = it
-			request.status = Status.DECLINED.value
-			request.approver = user.id
-			Notifier.notifyOnUpdate(request)
-			if (request is CreditObtainRequest) creditObtainsRepo.save(request) else creditIncreaseRepo.save(request as CreditIncreaseRequest)
+			select.optionalComment = it
+			select.status = Status.DECLINED.value
+			select.approver = user.id
+			Notifier.notifyOnUpdate(select)
+			if (select is CreditObtainRequest) creditObtainsRepo.save(select as CreditObtainRequest) else creditIncreaseRepo.save(select as CreditIncreaseRequest)
 			launch {
-				gSheetsAPI.updateCellsWhere(page = "Requests", criteria = { it[0] == request.id }, updateFx = {
-					it[10] = request.status
-					it[18] = request.optionalComment ?: " --- "
+				gSheetsAPI.updateCellsWhere(page = "Requests", criteria = { it[0] == select.id }, updateFx = {
+					it[10] = select.status
+					it[18] = reason
 					return@updateCellsWhere it
 				})
 			}
